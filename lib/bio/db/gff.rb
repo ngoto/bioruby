@@ -121,9 +121,34 @@ module Bio
 
       def parse_attributes(attributes)
         hash = Hash.new
-        scanner = StringScanner.new(attributes)
-        while scanner.scan(/(.*[^\\])\;/) or scanner.scan(/(.+)/)
-          key, value = scanner[1].split(' ', 2)
+
+        ary = attributes.split(/\;/)
+        while x = ary.shift
+          i0 = 0
+          while pos = x.index('"', i0)
+            i0 = pos + 1
+            while true
+              if pos = x.index('"', i0) then
+                i0 = pos + 1
+                break unless x[pos - 1, 1] == "\\"
+              else
+                if y = ary.shift
+                  x.concat ';'
+                  x.concat y
+                else
+                  break
+                end
+              end
+            end
+          end #while pos = ...
+
+          # To keep compatibility, the '\;' is concatenated again.
+          if x[-1, 1] == "\\" and ary[0] then
+            x.concat ';'
+            x.concat ary.shift
+          end
+
+          key, value = x.split(' ', 2)
           key.strip!
           value.strip! if value
           hash[key] = value

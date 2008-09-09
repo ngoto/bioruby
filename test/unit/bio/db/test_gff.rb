@@ -119,6 +119,57 @@ END_OF_DATA
 
   end # class TestGFFRecordConstruct
 
+
+  class TestGFF2ComplexAttributes < Test::Unit::TestCase
+
+    # The test string is privided by Tomoaki NISHIYAMA.
+    def test_attributes_case1
+      str = "LG_I\tJGI\tCDS\t11052\t11064\t.\t-\t0\tname \"grail3.0116000101\"; proteinId 639579; exonNumber 3\n"
+
+      attributes = {
+        "name"       => "\"grail3.0116000101\"",
+        "proteinId"  => "639579",
+        "exonNumber" => "3"
+      }
+
+      assert_equal(attributes,
+                   Bio::GFF::GFF2::Record.new(str).attributes)
+    end
+
+    # The test string is privided by Tomoaki NISHIYAMA and modified.
+    def test_attributes_case2
+      str = "LG_I\tJGI\tCDS\t11052\t11064\t.\t-\t0\tname \"grail3.0116000101\"; proteinId 639579; exonNumber 3; Note \"Semicolons ; and \;, and quote \\\" can be OK\"; Comment \"This is the \\\"comment\\\"\"\n"
+
+      attributes = {
+        "name"       => "\"grail3.0116000101\"",
+        "proteinId"  => "639579",
+        "exonNumber" => "3",
+        "Note" => "\"Semicolons ; and \;, and quote \\\" can be OK\"",
+        "Comment" => "\"This is the \\\"comment\\\"\""
+      }
+
+      assert_equal(attributes,
+                   Bio::GFF::GFF2::Record.new(str).attributes)
+    end
+
+    def test_attributes_compatibility_backslash_semicolon
+      str =<<END_OF_DATA
+I	sgd	gene	151453	151591	.	+	.	Gene "CEN1" ; Note "Chromosome I Centromere"; Semicolon a "b;c" d "e;f;g" h; Illegal a\\;b c d; Comment "a ; b"
+END_OF_DATA
+
+      attributes = {
+        'Gene' => '"CEN1"',
+        'Note' => '"Chromosome I Centromere"',
+        'Semicolon' => 'a "b;c" d "e;f;g" h',
+        'Illegal' => 'a\;b c d',
+        'Comment' => '"a ; b"'
+      }
+      assert_equal(attributes,
+                   Bio::GFF::GFF2::Record.new(str).attributes)
+    end
+
+  end #class TestGFF2ComplexAttributes
+
   class TestGFF3 < Test::Unit::TestCase
     def setup
       @data =<<END_OF_DATA
