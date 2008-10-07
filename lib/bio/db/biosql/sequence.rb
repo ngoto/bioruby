@@ -28,7 +28,8 @@ module Bio
         send :define_method, method_reader do
           #return an array of bioentry_qualifier_values
           begin
-            term  = Term.find_or_create_by_name(:name => synonym, :ontology=> Ontology.find_by_name('Annotation Tags'))
+	    ontology_annotation_tags = Ontology.find_or_create_by_name('Annotation Tags')
+            term  = Term.find_or_create_by_name(:name => synonym, :ontology=> ontology_annotation_tags)
             bioentry_qualifier_values = @entry.bioentry_qualifier_values.find_all_by_term_id(term)          
             bioentry_qualifier_values.map{|row| row.value} unless bioentry_qualifier_values.nil?
           rescue Exception => e 
@@ -38,7 +39,8 @@ module Bio
         
         send :define_method, method_writer_operator do |value|
           begin
-            term  = Term.find_or_create_by_name(:name => synonym, :ontology=> Ontology.find_by_name('Annotation Tags'))
+	    ontology_annotation_tags = Ontology.find_or_create_by_name('Annotation Tags')
+            term  = Term.find_or_create_by_name(:name => synonym, :ontology=> ontology_annotation_tags)
             datas = @entry.bioentry_qualifier_values.find_all_by_term_id(term.term_id)
             #add an element incrementing the rank or setting the first to 1
             @entry.bioentry_qualifier_values.create(:term_id=>term.term_id, :rank=>datas.empty? ? 1 : datas.last.rank.succ, :value=>value)
@@ -49,7 +51,8 @@ module Bio
         
         send :define_method, method_writer_modder do |value, rank|
           begin
-            term  = Term.find_or_create_by_name(:name => synonym, :ontology=> Ontology.find_by_name('Annotation Tags'))
+	    ontology_annotation_tags = Ontology.find_or_create_by_name('Annotation Tags')
+            term  = Term.find_or_create_by_name(:name => synonym, :ontology=> ontology_annotation_tags)
             data = @entry.bioentry_qualifier_values.find_by_term_id_and_rank(term.term_id, rank)
             if data.nil?
               send method_writer_operator, value
@@ -86,64 +89,82 @@ module Bio
       def initialize(options={})
         options.assert_valid_keys(:entry, :biodatabase_id,:biosequence)
         return @entry = options[:entry] unless options[:entry].nil?
+        
         return to_biosql(options[:biosequence], options[:biodatabase_id]) unless options[:biosequence].nil? or options[:biodatabase_id].nil?
+        
       end
       
       def to_biosql(bs,biodatabase_id)
         #Transcaction works greatly!!!
-        
+
         #
         begin
           Bioentry.transaction do           
+        
             @entry = Bioentry.new(:biodatabase_id=>biodatabase_id, :name=>bs.entry_id)
-            #            pp "primary"
+
+                        puts "primary" if $DEBUG
             self.primary_accession = bs.primary_accession
-            #            pp "def"
+
+                        puts "def" if $DEBUG
             self.definition = bs.definition unless bs.definition.nil?
-            #            pp "seqver"
+
+                        puts "seqver" if $DEBUG
             self.sequence_version = bs.sequence_version
-            #            pp "divi"
+
+                        puts "divi" if $DEBUG
             self.division = bs.division unless bs.division.nil?
+
             @entry.save!
-            #            pp "secacc"
+                        puts "secacc" if $DEBUG
+            
             bs.secondary_accessions.each do |sa|
               #write as qualifier every secondary accession into the array
               self.secondary_accessions = sa
             end
+
+            
             #to create the sequence entry needs to exists
-            #            pp "seq"
+		puts "seq" if $DEBUG
+	            puts bs.seq if $DEBUG
             self.seq = bs.seq unless bs.seq.nil?
-            #            pp "mol"
+                       puts "mol" if $DEBUG
+            
             self.molecule_type = bs.molecule_type unless bs.molecule_type.nil?
-            #            pp "dc"
+                        puts "dc" if $DEBUG
+
             self.data_class = bs.data_class unless bs.data_class.nil?
-            #            pp "top"
+                        puts "top" if $DEBUG
             self.topology = bs.topology unless bs.topology.nil?
-            #            pp "datec"
+                        puts "datec" if $DEBUG
             self.date_created = bs.date_created unless bs.date_created.nil?
-            #            pp "datemod"
+                        puts "datemod" if $DEBUG
             self.date_modified = bs.date_modified unless bs.date_modified.nil?
-            #            pp "key"
+                        puts "key" if $DEBUG
+            
             bs.keywords.each do |kw|
               #write as qualifier every secondary accessions into the array
               self.keywords = kw
-            end
-            #FIX: problem settinf texon_name: embl has "Arabidopsis thaliana (thale cress)" but in taxon_name table there isn't this name. I must check if there is a new version of the table
-            #pp "spec"        
+            end 
+            #FIX: problem settinf taxon_name: embl has "Arabidopsis thaliana (thale cress)" but in taxon_name table there isn't this name. I must check if there is a new version of the table
+            puts "spec" if $DEBUG
             self.species = bs.species unless bs.species.nil?
-            #            pp "Debug: #{bs.species}"
-            #            pp "feat"
+                        puts "Debug: #{bs.species}" if $DEBUG
+                        puts "Debug: feat..start" if $DEBUG
+            
             bs.features.each do |feat|
               self.feature=feat
             end
+			puts "Debug: feat...end" if $DEBUG
             
             #TODO: add comments and references
             
           end #transaction
           return self
         rescue Exception => e
-          pp "to_biosql exception: #{e}"
-        end
+          puts "to_biosql exception: #{e}"
+          puts $!
+	end #rescue
       end #to_biosql
       
       
@@ -170,12 +191,12 @@ module Bio
       #      end
       
       def organism
-        @entry.taxon.nil? ? "" : @entry.taxon.taxon_scientific_name.name
+        @entry.taxon.nil? ? "" : "#{@entry.taxon.taxon_scientific_name.name} (#{@entry.taxon.taxon_genbank_common_name.name})"
       end
       alias species organism
       
       def organism=(value)
-        taxon_name=TaxonName.find_by_name_and_name_class(value,'scientific name')
+        taxon_name=TaxonName.find_by_name_and_name_class(value.gsub(/\s+\(.+\)/,''),'scientific name')
         if taxon_name.nil?
           puts "Error value doesn't exists in taxon_name table with scientific name constraint."
         else
@@ -242,37 +263,62 @@ module Bio
       end
       
       def feature=(feat)
-        #TODO: fix ontology_id and source_term_id 
-        type_term = Term.find_or_create_by_name(:name=>feat.feature, :ontology_id=>1)
-        seqfeature = Seqfeature.new(:bioentry=>@entry, :source_term_id=>2, :type_term=>type_term, :rank=>@entry.seqfeatures.count.succ, :display_name=>'')
-        seqfeature.save!        
+	      #ToDo: avoid Ontology find here, probably more efficient create class variables
+	type_term_ontology = Ontology.find_or_create_by_name('SeqFeature Keys')
+        type_term = Term.find_or_create_by_name(:name=>feat.feature, :ontology=>type_term_ontology)
+	source_term_ontology = Ontology.find_or_create_by_name('SeqFeature Sources')
+	source_term = Term.find_or_create_by_name(:name=>'EMBLGenBankSwit',:ontology=>source_term_ontology)
+        seqfeature = Seqfeature.create(:bioentry=>@entry, :source_term=>source_term, :type_term=>type_term, :rank=>@entry.seqfeatures.count.succ, :display_name=>'')
+        #seqfeature.save!       
         feat.locations.each do |loc|
           location = Location.new(:seqfeature=>seqfeature, :start_pos=>loc.from, :end_pos=>loc.to, :strand=>loc.strand, :rank=>seqfeature.locations.count.succ)
           location.save!
         end
+	qual_term_ontology = Ontology.find_or_create_by_name('Annotation Tags')
         feat.each do |qualifier|
-          qual_term = Term.find_or_create_by_name(:name=>qualifier.qualifier, :ontology_id=>3)
+          qual_term = Term.find_or_create_by_name(:name=>qualifier.qualifier, :ontology=>qual_term_ontology)
           qual = SeqfeatureQualifierValue.new(:seqfeature=>seqfeature, :term=>qual_term, :value=>qualifier.value, :rank=>seqfeature.seqfeature_qualifier_values.count.succ)
           qual.save!          
         end
       end
       
-      
+      #return the seqfeature mapped from BioSQL with a type_term like 'CDS'
+      def cdsfeatures
+        @entry.cdsfeatures
+      end
+
+      # Returns the sequence.
+      # Returns a Bio::Sequence::Generic object.
       def seq
-        Bio::Sequence.auto(@entry.biosequence.seq) unless @entry.biosequence.nil?
-      end	
+        s = @entry.biosequence
+        Bio::Sequence::Generic.new(s ? s.seq : '')
+      end
       
       def seq=(value)
+#        pp "0"
+#        pp value.class
+#        pp "1"
+#        pp value.seq.to_s.class
         #chk which type of alphabet is, NU/NA/nil
         #value could be nil ? I think no.
         if @entry.biosequence.nil?
+#          puts "intoseq1"
           @entry.biosequence = Biosequence.new(:seq=>value)
-          @entry.biosequence.save!
+	  @entry.biosequence.save!
+#          @entry.build_biosequence(:seq=>"avagvga")
+          #@entry.biosequence.seq
+          #@entry.biosequence = Bio::SQL::Biosequence.new(:seq=>value.seq.to_s, :bioentry_id=>@entry.bioentry_id)
+          #@entry.biosequence = Bio::SQL::Biosequence.new(:seq=>value)
+          #@entry.build_sequence
+#          puts "stop"
+#          break
         else
           @entry.biosequence.seq=value
         end
-        
         self.length=value.length
+        #@entry.biosequence.length=value.length
+        #break
+        @entry.save!
       end
       
       def taxonomy
@@ -331,306 +377,9 @@ module Bio
       end
       
       
-      # converts Bio::SQL::Sequence to Bio::Sequence
-      # ---
-      # *Arguments*: 
-      # *Returns*:: Bio::Sequence object
-      #TODO:      def to_biosequence
-      #        sequence = Bio::Sequence.new(seq)
-      #        sequence.entry_id = entry_id
-      #        
-      #        sequence.primary_accession = accession
-      #        sequence.secondary_accessions = accession
-      #        
-      #        sequence.molecule_type = natype
-      #        sequence.division = division
-      #        sequence.topology = circular
-      #        
-      #        sequence.sequence_version = version
-      #        #sequence.date_created = nil #????
-      #        sequence.date_modified = date
-      #        
-      #        sequence.definition = definition
-      #        sequence.keywords = keywords
-      #        sequence.species = organism
-      #        sequence.classification = self.taxonomy.to_s.sub(/\.\z/, '').split(/\s*\;\s*/)
-      #        #sequence.organnella = nil # not used
-      #        sequence.comments = comment
-      #        sequence.references = references
-      #        sequence.features = features
-      #        return sequence
-      #      end
-      #
-      #			    def load_fasta(entry, biodatabase)
-      #				result=nil
-      #			#	    if !entry.accession.nil? then
-      #				    ##	pp biodatabase
-      #					begin 
-      #						Bioentry.transaction do 
-      #							bioentry=Bioentry.new(:biodatabase=>biodatabase, :name=>entry.accession, :accession=>entry.accession, \
-      #							  :description=>entry.definition, :version=>0)
-      #						
-      #			#				bioentry=Bioentry.new(:biodatabase=>biodatabase, :name=>entry.accession, :accession=>entry.accession, \
-      #			#				  :description=>entry.definition, :version=>entry.acc_version.split(/\./).last, :identifier=>entry.gi)
-      #					##		pp bioentry
-      #							bioentry.save!
-      #							result=bioentry
-      #							begin
-      #								Biosequence.transaction do
-      #									bioentry.biosequence = Biosequence.new(:seq=>entry.seq, :version=>0, :length=>entry.seq.length, :alphabet=>'')
-      #									bioentry.biosequence.save!
-      #								end #Bioseqence.transaction
-      #							rescue Exception => exc
-      #								puts "Error Biosequence: #{exc.message}"
-      #							end #Rescue Biosequence
-      #						end #Bioentry.transaction
-      #					rescue ActiveRecord::RecordInvalid => e
-      #						puts "Error: Transaction Aborted on class #{e.record.class}, table #{e.record.class.table_name} due to:"
-      #						e.record.errors.each{|att, msg|
-      #							puts "#{att} => #{msg}" 
-      #						}
-      #					rescue Exception => exc 
-      #						puts "Errore Bioentry: #{exc.message}"
-      #					end #Resce Bioentry
-      #			#	    end #entry chk
-      #				return result
-      #			    end #load_fasta
-      #
-      #			    def load_gb(entry, biodatabase)
-      #			##	pp biodatabase
-      #				result=nil
-      #
-      #				begin 
-      #				Bioentry.transaction do 
-      #					bioentry=Bioentry.new(:biodatabase=>biodatabase, :name=>entry.entry_id, :accession=>entry.entry_id, :division=>entry.division, \
-      #				  :description=>entry.definition, :version=>entry.version, :identifier=>entry.gi.split(/:/).last.to_i)
-      #			##		pp bioentry
-      #					bioentry.save!
-      #
-      #					result=bioentry
-      #
-      #			#		end #Bioentry.transaction
-      #			##debug	pp ["Bioentry", [:name=>entry.entry_id, :accession=>entry.entry_id, :division=>entry.division,
-      #			##  :description=>entry.definition, :version=>entry.version, :identifier=>entry.gi.split(/:/).last.to_i]] 
-      #
-      #			#delete	biodatabase.bioentries << bioentry
-      #				#note Alphabet not defined
-      #
-      #				begin
-      #				rank_comment=1
-      #				Comment.transaction do 
-      #					if !entry.comment.empty? then
-      #						bioentry.comment = Comment.new(:comment_text=>entry.comment, :rank=>rank_comment)
-      #						bioentry.comment.save!
-      #						rank_comment=rank_comment.next
-      #					end
-      #				end #Comment.transaction
-      #				rescue Exception => exc
-      #					puts "Error Comment: #{exc.message}"
-      #				end #Rescue Command
-      #			#debug	pp "Comment"
-      #			##debug  	pp ["Comment", [:comment_text=>entry.comment]] if !entry.comment.empty?
-      #				begin
-      #				Biosequence.transaction do
-      #					bioentry.biosequence = Biosequence.new(:seq=>entry.seq, :version=>0, :length=>entry.seq.length, :alphabet=>'')
-      #					bioentry.biosequence.save!
-      #				end #Bioseqence.transaction
-      #				rescue Exception => exc
-      #					puts "Error Biosequence: #{exc.message}"
-      #				end #Rescue Biosequence
-      #			#debug	pp "Biosequence"
-      #			##debug  	pp ["Biosequence", :seq=>entry.seq, :version=>0, :length=>entry.seq.length, :alphabet=>'']
-      #				begin
-      #				rank_seqfeature=1
-      #				Seqfeature.transaction do 
-      #					entry.features.each do |feature|
-      #					#note Rank default to ZERO, display_name String empty
-      #					#note Chek if exists term name
-      ##delete puts "Feature #{feature.inspect}"			
-      ##delete puts "FeatureFeature #{feature.feature.inspect}"		
-      #
-      #						type_term = Term.exists?(:name=>feature.feature) ? Term.find_by_name(feature.feature) : Term.create!(:name=>feature.feature, :ontology_id=>1)
-      #			#			seqfeature = Seqfeature.new(:bioentry=>bioentry, :source_term_id=>2, :typeterm=>Term.find_by_name(feature.feature), :rank=>rank_seqfeature, :display_name=>'')
-      ##delete puts "Type Term #{type_term.inspect}"			
-      #						seqfeature = Seqfeature.new(:bioentry=>bioentry, :source_term_id=>2, :type_term=>type_term, :rank=>rank_seqfeature, :display_name=>'')
-      ##delete puts "Seqfeature #{seqfeature.inspect}"						
-      #						seqfeature.save!
-      #			##debug		pp ["Seqfeature", [:source_term_id=>2, :typeterm=>Term.find_by_name(feature.feature), :rank=>0, :display_name=>'']]
-      #						begin
-      #						Location.transaction do 	
-      #							feature.locations.each do |loc|
-      #								location = Location.new(:seqfeature=>seqfeature, :start_pos=>loc.from, :end_pos=>loc.to, :strand=>loc.strand)
-      #								location.save!
-      #			##debug			pp ["Location",[:start_pos=>loc.from, :end_pos=>loc.to, :strand=>loc.strand]]
-      #							end #locations
-      #						end #Location.transaction
-      #						rescue Exception => exc
-      #							puts "Error Location: #{exc.message}"
-      #						end #Rescue Location
-      #			#debug			pp "Locations"
-      #			#delete			bioentry.seqfeatures << seqfeature
-      ##delete if nil
-      #						begin
-      #						rank_seqfeaturequalifiervalue=0
-      #						rank_qual_qualifier=""
-      #						SeqfeatureQualifierValue.transaction do
-      #							feature.each do |qual|
-      #	
-      #							#gestisce il livello dei qualificatori...
-      #								if (rank_qual_qualifier==qual.qualifier) then 
-      #									rank_seqfeaturequalifiervalue=rank_seqfeaturequalifiervalue.next
-      #								else
-      #									rank_seqfeaturequalifiervalue=1
-      #									rank_qual_qualifier=qual.qualifier
-      #								end
-      #
-      #			##debug			pp ["SeqfeatureQualifierValue",  qual.qualifier, [ :term=>Term.find_by_name(qual.qualifier), :value=>qual.value]]
-      #								term = Term.exists?(:name=>qual.qualifier) ? Term.find_by_name(qual.qualifier) : Term.create!(:name=>qual.qualifier, :ontology_id=>3)
-      #
-      #			#				qual = SeqfeatureQualifierValue.new(:seqfeature=>seqfeature, :term=>Term.find_by_name(qual.qualifier), :value=>qual.value, :rank=>rank_seqfeaturequalifiervalue)
-      #								qual = SeqfeatureQualifierValue.new(:seqfeature=>seqfeature, :term=>term, :value=>qual.value, :rank=>rank_seqfeaturequalifiervalue)
-      #								qual.save!
-      #							end #qualifiers
-      #						end #SeqfeatureQualifierValue.transaction
-      #						rescue Exception => exc
-      #							puts "Error SeqfeatureQualifierValue: #{exc.message}"
-      #						end #Rescue SeqfeatureQualifierValue
-      ###delete end #debug if nil
-      #			#debug			pp "SeqfeatureQualifierValue"
-      #					rank_seqfeature=rank_seqfeature.next
-      #					end #features
-      #				end #Seqfeature.transaction
-      #				rescue Exception => exc
-      #					puts "Error Seqfeature: #{exc.message}"
-      #				end #Rescue Seqfeature
-      #
-      #				end #Bioentry.transaction
-      #				rescue ActiveRecord::RecordInvalid => e
-      #					puts "Error: Transaction Aborted on class #{e.record.class}, table #{e.record.class.table_name} due to:"
-      #					e.record.errors.each{|att, msg|
-      #						puts "#{att} => #{msg}" 
-      #					}
-      #				rescue Exception => exc 
-      #					puts "Errore Bioentry: #{exc.message}"
-      #				end #Resce Bioentry
-      #				return result
-      #			    end #load_gb
-      #			    
-      #			    def load_embl(entry, biodatabase)
-      #			    
-      #			#	puts biodatabase
-      #				result=nil
-      #
-      #				begin 
-      #				Bioentry.transaction do 
-      #					bioentry=Bioentry.new(:biodatabase=>biodatabase, :name=>entry.entry_id, :accession=>entry.entry_id, :division=>entry.division, \
-      #				  :description=>entry.definition, :version=>entry.version, :identifier=>entry.entry_id)
-      #			#		puts bioentry
-      #					bioentry.save!
-      #					result=bioentry
-      #
-      #			#		end #Bioentry.transaction
-      #			#	puts ["Bioentry", [:name=>entry.entry_id, :accession=>entry.entry_id, :division=>entry.division,\
-      #			#  :description=>entry.definition, :version=>entry.version, :identifier=>entry.entry_id]] 
-      #
-      #			#delete	biodatabase.bioentries << bioentry
-      #				#note Alphabet not defined
-      #				begin
-      #				rank_comment=1
-      #				#qui potrebbero essercene di più
-      #				Comment.transaction do 
-      #					if !entry.cc.empty?
-      #						bioentry.comment = Comment.new(:comment_text=>entry.cc, :rank=>rank_comment)
-      #						bioentry.comment.save!
-      #						rank_comment=rank_comment.next
-      #					end
-      #				end #Comment.transaction
-      #				rescue Exception => exc
-      #					puts "Error Comment: #{exc.message}"
-      #				end #Rescue Command
-      #			#	puts "Comment"
-      #			 # 	puts ["Comment", [:comment_text=>entry.cc]] if !entry.cc.empty?
-      #				begin
-      #				Biosequence.transaction do
-      #					bioentry.biosequence = Biosequence.new(:seq=>entry.seq, :version=>0, :length=>entry.seq.length, :alphabet=>entry.molecule_type)
-      #					bioentry.biosequence.save!
-      #				end #Bioseqence.transaction
-      #				rescue Exception => exc
-      #					puts "Error Biosequence: #{exc.message}"
-      #				end #Rescue Biosequence
-      #			#debug	pp "Biosequence"
-      #			##debug  	pp ["Biosequence", :seq=>entry.seq, :version=>0, :length=>entry.seq.length, :alphabet=>'']
-      #				begin
-      #				rank_seqfeature=1
-      #				Seqfeature.transaction do 
-      #					entry.features.each do |feature|
-      #					#note Rank default to ZERO, display_name String empty
-      #					#note Chek if exists term name
-      #						type_term = Term.exists?(:name=>feature.feature) ? Term.find_by_name(feature.feature) : Term.create!(:name=>feature.feature, :ontology_id=>1)
-      #			#			seqfeature = Seqfeature.new(:bioentry=>bioentry, :source_term_id=>2, :typeterm=>Term.find_by_name(feature.feature), :rank=>rank_seqfeature, :display_name=>'')
-      #						seqfeature = Seqfeature.new(:bioentry=>bioentry, :source_term_id=>2, :type_term=>type_term, :rank=>rank_seqfeature, :display_name=>'')
-      #						seqfeature.save!
-      #			##debug		pp ["Seqfeature", [:source_term_id=>2, :typeterm=>Term.find_by_name(feature.feature), :rank=>0, :display_name=>'']]
-      #						begin
-      #						Location.transaction do 	
-      #							feature.locations.each do |loc|
-      #								location = Location.new(:seqfeature=>seqfeature, :start_pos=>loc.from, :end_pos=>loc.to, :strand=>loc.strand)
-      #								location.save!
-      #			##debug			pp ["Location",[:start_pos=>loc.from, :end_pos=>loc.to, :strand=>loc.strand]]
-      #							end #locations
-      #						end #Location.transaction
-      #						rescue Exception => exc
-      #							puts "Error Location: #{exc.message}"
-      #						end #Rescue Location
-      #			#debug			pp "Locations"
-      #			#delete			bioentry.seqfeatures << seqfeature
-      #						begin
-      #						rank_seqfeaturequalifiervalue=0
-      #						rank_qual_qualifier=""
-      #						SeqfeatureQualifierValue.transaction do
-      #							feature.each do |qual|
-      #							#gestisce il livello dei qualificatori...
-      #								if (rank_qual_qualifier==qual.qualifier) then 
-      #									rank_seqfeaturequalifiervalue=rank_seqfeaturequalifiervalue.next
-      #								else
-      #									rank_seqfeaturequalifiervalue=1
-      #									rank_qual_qualifier=qual.qualifier
-      #								end
-      #
-      #			##debug			pp ["SeqfeatureQualifierValue",  qual.qualifier, [ :term=>Term.find_by_name(qual.qualifier), :value=>qual.value]]
-      #								term = Term.exists?(:name=>qual.qualifier) ? Term.find_by_name(qual.qualifier) : Term.create!(:name=>qual.qualifier, :ontology_id=>3)
-      #			#				qual = SeqfeatureQualifierValue.new(:seqfeature=>seqfeature, :term=>Term.find_by_name(qual.qualifier), :value=>qual.value, :rank=>rank_seqfeaturequalifiervalue)
-      #								qual = SeqfeatureQualifierValue.new(:seqfeature=>seqfeature, :term=>term, :value=>qual.value, :rank=>rank_seqfeaturequalifiervalue)
-      #
-      #								qual.save!
-      #							end #qualifiers
-      #						end #SeqfeatureQualifierValue.transaction
-      #						rescue Exception => exc
-      #							puts "Error SeqfeatureQualifierValue: #{exc.message}"
-      #						end #Rescue SeqfeatureQualifierValue
-      #			#debug			pp "SeqfeatureQualifierValue"
-      #					rank_seqfeature=rank_seqfeature.next
-      #					end #features
-      #				end #Seqfeature.transaction
-      #				rescue Exception => exc
-      #					puts "Error Seqfeature: #{exc.message}"
-      #				end #Rescue Seqfeature
-      #				end #Bioentry.transaction
-      #				rescue ActiveRecord::RecordInvalid => e
-      #					puts "Error: Transaction Aborted on class #{e.record.class}, table #{e.record.class.table_name} due to:"
-      #					e.record.errors.each{|att, msg|
-      #						puts "#{att} => #{msg}" 
-      #					}
-      #				rescue Exception => exc 
-      #					puts "Errore Bioentry: #{exc.message}"
-      #				end #Resce Bioentry
-      #				
-      #				return result
-      #			    end #load_embl
-      
       
       def to_biosequence
-        Bio::Sequence.adapter(self, Bio::Sequence::Adapter::BioSQL)
+	 Bio::Sequence.adapter(self,Bio::Sequence::Adapter::BioSQL)
       end
     end #Sequence
     
