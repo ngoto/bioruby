@@ -23,7 +23,7 @@ module Bio
       case RUBY_PLATFORM
       when /mswin32|bccwin32/
         bioruby_root = Pathname.new(File.join(File.dirname(__FILE__), ['..'] * 3)).cleanpath.to_s
-        cmd = Pathname.new(File.join(bioruby_root, 'test', 'data', 'command', 'echoarg2.bat'))
+        cmd = File.expand_path(File.join(bioruby_root, 'test', 'data', 'command', 'echoarg2.bat'))
         @arg = [ cmd, 'test "argument 1"', '"test" argument 2', 'arg3' ]
         @expected = '"""test"" argument 2"'
       else
@@ -148,7 +148,7 @@ module Bio
   class FuncTestCommandNet < Test::Unit::TestCase
     def test_read_uri
       assert_nothing_raised {
-        Bio::Command.read_uri("http://bioruby.org/")
+        Bio::Command.read_uri("http://bioruby.open-bio.org/")
       }
     end
 
