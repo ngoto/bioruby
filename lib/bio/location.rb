@@ -461,7 +461,14 @@ class Locations
   end
 
 
-  # string representation
+  # String representation.
+  #
+  # Note: In some cases, it fails to detect whether
+  # "complement(join(...))" or "join(complement(..))", and whether
+  # "complement(order(...))" or "order(complement(..))".
+  # 
+  # ---
+  # *Returns*:: String
   def to_s
     return '' if @locations.empty?
     complement_join = false
