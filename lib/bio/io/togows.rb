@@ -110,6 +110,11 @@ module Bio
         ids = ids.split(',')
 
         dbs = hash[:database] || DEFAULT_RETRIEVAL_DATABASES
+        begin
+          dbs.to_ary
+        rescue NoMethodError
+          dbs = dbs.to_s.empty? ? [] : [ dbs.to_s ]
+        end
         return nil if dbs.empty? or ids.empty?
 
         if dbs.size == 1 then
