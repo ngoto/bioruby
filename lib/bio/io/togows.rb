@@ -15,6 +15,7 @@
 
 require 'uri'
 require 'cgi'
+require 'bio/version'
 require 'bio/command'
 
 module Bio
@@ -54,10 +55,10 @@ module Bio
       # URI of the TogoWS REST service
       BASE_URI = 'http://togows.dbcls.jp/'.freeze
 
-      # preset default databases used by the retrieve method
+      # preset default databases used by the retrieve method.
+      #
       DEFAULT_RETRIEVAL_DATABASES =
-        %w( genbank uniprot embl ddbj dad gene
-            pdb enzyme compound drug glycan reaction orthology pubmed )
+        %w( genbank uniprot embl ddbj dad )
 
       # Creates a new object.
       # ---
@@ -71,7 +72,7 @@ module Bio
         @pathbase = @pathbase + '/' unless /\/\z/ =~ @pathbase
         @http = Bio::Command.new_http(uri.host, uri.port)
         @header = {
-          'User-Agent' => "BioRuby/#{Bio::BIORUBY_VERSION.join('.')}"
+          'User-Agent' => "BioRuby/#{Bio::BIORUBY_VERSION_ID}"
         }
         @debug = false
       end
@@ -79,11 +80,20 @@ module Bio
       # If true, shows debug information to $stderr.
       attr_accessor :debug
 
+      # Debug purpose only.
+      # Returns Net::HTTP object used inside the object.
+      # The method will be changed in the future if the implementation
+      # of this class is changed.
+      def internal_http
+        @http
+      end
+
       # Intelligent version of the entry method.
       # If two or more databases are specified, sequentially tries
       # them until valid entry is obtained.
       #
       # If database is not specified, preset default databases are used. 
+      # See DEFAULT_RETRIEVAL_DATABASES for details.
       #
       # When multiple IDs and multiple databases are specified, sequentially
       # tries each IDs. Note that results with no hits found or with server
