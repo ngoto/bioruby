@@ -145,7 +145,7 @@ module Bio
       result = nil
       assert_nothing_raised {
         result = @togows.retrieve('1.1.1.1',
-                                  :database => [ 'reaction', 'enzyme' ])
+                                  :database => [ 'gene', 'enzyme' ])
       }
       assert(!result.to_s.strip.empty?)
     end
@@ -153,8 +153,24 @@ module Bio
     def test_retrieve_2id_2db
       result = nil
       assert_nothing_raised {
-        result = @togows.retrieve([ '1.1.1.1', 'R07326' ],
-                                  :database => [ 'reaction', 'enzyme' ])
+        result = @togows.retrieve([ '1.1.1.1', 'hsa:124' ],
+                                  :database => [ 'gene', 'enzyme' ])
+      }
+      assert(!result.to_s.strip.empty?)
+    end
+
+    def test_entry_database_list
+      result = nil
+      assert_nothing_raised {
+        result = @togows.entry_database_list
+      }
+      assert(!result.to_s.strip.empty?)
+    end
+
+    def test_search_database_list
+      result = nil
+      assert_nothing_raised {
+        result = @togows.search_database_list
       }
       assert(!result.to_s.strip.empty?)
     end

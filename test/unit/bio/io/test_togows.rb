@@ -88,6 +88,14 @@ module Bio
       assert_respond_to(Bio::TogoWS::REST, :retrieve)
     end
 
+    def test_entry_database_list
+      assert_respond_to(Bio::TogoWS::REST, :entry_database_list)
+    end
+
+    def test_search_database_list
+      assert_respond_to(Bio::TogoWS::REST, :search_database_list)
+    end
+
   end #class TestTogoWSRESTclassMethod
 
 end #module Bio
