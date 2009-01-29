@@ -164,7 +164,8 @@ module Bio
       assert_nothing_raised {
         result = @togows.entry_database_list
       }
-      assert(!result.to_s.strip.empty?)
+      assert_kind_of(Array, result)
+      assert(!result.empty?)
     end
 
     def test_search_database_list
@@ -172,7 +173,8 @@ module Bio
       assert_nothing_raised {
         result = @togows.search_database_list
       }
-      assert(!result.to_s.strip.empty?)
+      assert_kind_of(Array, result)
+      assert(!result.empty?)
     end
 
   end #FuncTestTogoWSRESTcommon
@@ -187,6 +189,68 @@ module Bio
     end
 
   end #class FuncTestTogoWSREST
+
+  # functional test for Bio::TogoWS::REST private methods
+  class FuncTestTogoWSRESTprivate < Test::Unit::TestCase
+
+    def setup
+      @togows = Bio::TogoWS::REST.new
+    end
+
+    def test_get
+      response = nil
+      acc = 'AF237819'
+      assert_nothing_raised {
+        response = @togows.instance_eval {
+          get('entry', 'genbank', acc, 'entry_id')
+        }
+      }
+      assert_kind_of(Net::HTTPResponse, response)
+      assert_equal("200", response.code)
+      result = response.body
+      assert(!result.to_s.strip.empty?)
+    end
+
+    def test_get_dir
+      response = nil
+      assert_nothing_raised {
+        response = @togows.instance_eval {
+          get_dir('search')
+        }
+      }
+      assert_kind_of(Net::HTTPResponse, response)
+      assert_equal("200", response.code)
+      result = response.body
+      assert(!result.to_s.strip.empty?)
+    end
+
+    def test_post_data
+      data = File.read(File.join(Bio::FuncTestTogoWSRESTcommon::TestData,
+                                 'blast', 'b0002.faa.m0'))
+      response = nil
+      assert_nothing_raised {
+        response = @togows.instance_eval {
+          post_data(data, 'convert', 'blast.gff')
+        }
+      }
+      assert_kind_of(Net::HTTPResponse, response)
+      assert_equal("200", response.code)
+      result = response.body
+      assert(!result.to_s.strip.empty?)
+    end
+
+    def test_database_list
+      result = nil
+      assert_nothing_raised {
+        result = @togows.instance_eval {
+          database_list('entry')
+        }
+      }
+      assert_kind_of(Array, result)
+      assert(!result.empty?)
+    end
+
+  end #class FuncTestTogoWSRESTprivate
 
   if false # DISABLED because of the server load and execution time
 

@@ -46,6 +46,40 @@ module Bio
 
   end #class TestTogoWSREST
 
+  # unit test for Bio::TogoWS::REST private methods
+  class TestTogoWSRESTprivate < Test::Unit::TestCase
+
+    def setup
+      @togows = Bio::TogoWS::REST.new
+    end
+
+    def test_make_path
+      a_and_q = {
+        '/ab/cde/fghi' => [ 'ab', 'cde', 'fghi' ],
+        '/a+b/a%2Bb/a%2Fb/a%26b/a%3Bb/a%2Cb/a%3Bb' =>
+        [ 'a b', 'a+b', 'a/b', 'a&b', 'a;b', 'a,b', 'a;b' ]
+      }
+      count = 0
+      a_and_q.each do |k,v|
+        assert_equal(k, @togows.instance_eval { make_path(v) })
+        count += 1
+      end
+      assert_equal(a_and_q.size, count)
+    end
+
+    def test_prepare_return_value
+      dummyclass = Struct.new(:code, :body)
+      dummy200 = dummyclass.new("200", "this is test")
+      assert_equal("this is test",
+                   @togows.instance_eval { prepare_return_value(dummy200) })
+      dummy404 = dummyclass.new("404", "not found")
+      assert_equal(nil,
+                   @togows.instance_eval { prepare_return_value(dummy404) })
+    end
+
+  end #class TestTogoWSRESTprivate
+
+
   # unit test for Bio::TogoWS::REST class methods
   class TestTogoWSRESTclassMethod < Test::Unit::TestCase
 
@@ -97,5 +131,31 @@ module Bio
     end
 
   end #class TestTogoWSRESTclassMethod
+
+  # dummy class for testing Bio::TogoWS::AccessWait
+  class DummyAccessWait
+    include Bio::TogoWS::AccessWait
+  end
+
+  # unit test for Bio::TogoWS::AccessWait (all methods are private)
+  class TestTogoWSAccessWait < Test::Unit::TestCase
+    def setup
+      @obj = DummyAccessWait.new
+    end
+    
+    def test_togows_access_wait
+      assert_kind_of(Numeric, @obj.instance_eval { togows_access_wait })
+
+      waits = 0
+      2.times { waits += @obj.instance_eval { togows_access_wait } }
+      assert(waits > 0)
+    end
+
+    def test_reset_togows_access_wait
+      assert_nothing_raised {
+        @obj.instance_eval { reset_togows_access_wait }
+      }
+    end
+  end #class TestTogoWSAccessWait
 
 end #module Bio
