@@ -23,6 +23,78 @@ module Bio
   # Bio::TogoWS is a namespace for the TogoWS web services.
   module TogoWS
 
+    # Internal Use Only.
+    #
+    # Bio::TogoWS::AccessWait is a module to implement a
+    # private method for access.
+    module AccessWait
+
+      # common default access wait for TogoWS services
+      TOGOWS_ACCESS_WAIT = 1
+
+      # Maximum waiting time to avoid dead lock.
+      # When exceeding this value, (max/2) + rand(max) is used,
+      # to randomize access.
+      # This means real maximum waiting time is (max * 1.5).
+      TOGOWS_ACCESS_WAIT_MAX = 60
+
+      # Sleeping if needed. 
+      # It sleeps about TOGOWS_ACCESS_WAIT * (number of waiting processes).
+      #
+      # ---
+      # *Returns*:: (Numeric) sleeped time
+      def togows_access_wait
+        w_min = TOGOWS_ACCESS_WAIT
+        debug = defined?(@debug) && @debug
+
+        # initializing class variable
+        @@togows_last_access ||= nil
+
+        # determines waiting time
+        wait = 0
+        if last = @@togows_last_access then
+          elapsed = Time.now - last
+          if elapsed < w_min then
+            wait = w_min - elapsed
+          end
+        end
+
+        # If wait is too long, truncated to TOGOWS_ACCESS_WAIT_MAX.
+        if wait > TOGOWS_ACCESS_WAIT_MAX then
+          orig_wait = wait
+          wait = TOGOWS_ACCESS_WAIT_MAX
+          wait = wait / 2 + rand(wait)
+          if debug then
+            $stderr.puts "TogoWS: sleeping time #{orig_wait} is too long and set to #{wait} to avoid dead lock."
+          end
+          newlast = Time.now + TOGOWS_ACCESS_WAIT_MAX
+        else
+          newlast = Time.now + wait
+        end
+
+        # put expected end time of sleeping
+        if !@@togows_last_access or @@togows_last_access < newlast then
+          @@togows_last_access = newlast
+        end
+
+        # sleeping if needed
+        if wait > 0 then
+          $stderr.puts "TogoWS: sleeping #{wait} second" if debug
+          sleep(wait)
+        end
+        # returns waited time
+        wait
+      end
+      private :togows_access_wait
+
+      # (private) resets last access.
+      # Should be used only for debug purpose.
+      def reset_togows_access_wait
+        @@togows_last_access = nil
+      end
+      private :reset_togows_access_wait
+
+    end #module AccessWait
 
     # == Description
     #
@@ -51,6 +123,8 @@ module Bio
     # * http://togows.dbcls.jp/site/en/rest.html
     #
     class REST
+
+      include AccessWait
 
       # URI of the TogoWS REST service
       BASE_URI = 'http://togows.dbcls.jp/'.freeze
@@ -299,6 +373,7 @@ module Bio
         if @debug then
           $stderr.puts "TogoWS: HTTP#get(#{path.inspect}, #{@header.inspect})"
         end
+        togows_access_wait
         @http.get(path, @header)
       end
 
@@ -318,6 +393,7 @@ module Bio
         if @debug then
           $stderr.puts "TogoWS: HTTP#get(#{path.inspect}, #{@header.inspect})"
         end
+        togows_access_wait
         @http.get(path, @header)
       end
 
@@ -334,6 +410,7 @@ module Bio
         if @debug then
           $stderr.puts "TogoWS: Bio::Command.http_post_form(#{path.inspect}, { \"data\" => (#{data.size} bytes) }, #{@header.inspect})"
         end
+        togows_access_wait
         Bio::Command.http_post_form(@http, path, { 'data' => data }, @header)
       end
 
