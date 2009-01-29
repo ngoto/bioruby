@@ -65,7 +65,8 @@ task :regemspec do
 end
 
 desc "Update #{GEM_SPEC_FILE}"
-file GEM_SPEC_FILE => [ GEM_SPEC_TEMPLATE_FILE, 'Rakefile' ] do |t|
+file GEM_SPEC_FILE => [ GEM_SPEC_TEMPLATE_FILE, 'Rakefile',
+                        'lib/bio/version.rb' ] do |t|
   puts "creates #{GEM_SPEC_FILE}"
   File.open(t.name, 'w') do |w|
     w.print gem_spec_string
