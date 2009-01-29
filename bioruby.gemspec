@@ -236,6 +236,7 @@ Gem::Specification.new do |s|
     "lib/bio/shell/plugin/psort.rb",
     "lib/bio/shell/plugin/seq.rb",
     "lib/bio/shell/plugin/soap.rb",
+    "lib/bio/shell/plugin/togows.rb",
     "lib/bio/shell/rails/vendor/plugins/bioruby/generators/bioruby/bioruby_generator.rb",
     "lib/bio/shell/rails/vendor/plugins/bioruby/generators/bioruby/templates/_classes.rhtml",
     "lib/bio/shell/rails/vendor/plugins/bioruby/generators/bioruby/templates/_log.rhtml",
