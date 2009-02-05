@@ -1,6 +1,6 @@
 =begin
 
-  $Id:$
+#  $Id:$
 
   Copyright (C) 2001-2003, 2005, 2006 Toshiaki Katayama <k@bioruby.org>
   Copyright (C) 2005, 2006 Naohisa Goto <ng@bioruby.org>
@@ -2675,9 +2675,9 @@ BioRuby in Anger があります。
 * (※1) BioRuby 1.2.1 以前のバージョンでは、setup.rb のかわりに install.rb
   を使用します。また、以下のように3段階を踏む必要があります。
 
-  % ruby install.rb config
-  % ruby install.rb setup
-  # ruby install.rb install
+    % ruby install.rb config
+    % ruby install.rb setup
+    # ruby install.rb install
 
 * (※2) BioRuby 1.0.0 以前のバージョンでは、getseq, getent, getobj
   の各コマンドのかわりに、seq, ent, obj の各コマンドを使用してください。
@@ -2697,7 +2697,7 @@ BioRuby in Anger があります。
 
 * (※4) seq メソッドは、読み込んだデータの種類によっては、塩基・アミノ酸の
   どちらにも当てはまらない配列のための Bio::Sequence::Generic クラスや
-   String クラスのオブジェクトを返す場合があるかもしれません。
+  String クラスのオブジェクトを返す場合があるかもしれません。
 
 * (※5) NCBI, EBI, TogoWS が特別な設定無しに getseq, getent, getobj コマンド
   から利用可能となったのは BioRuby 1.3.0 以降です。
