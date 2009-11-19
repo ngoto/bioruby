@@ -113,8 +113,9 @@ module Bio
   ## other formats
 
   autoload :FastaFormat,    'bio/db/fasta'
-  autoload :FastaNumericFormat, 'bio/db/fasta' # change to FastaFormat::Numeric ?
-  autoload :FastaDefline,       'bio/db/fasta' # change to FastaFormat::Defline
+  autoload :FastaNumericFormat, 'bio/db/fasta/qual' # change to FastaFormat::Numeric ?
+  autoload :FastaDefline,       'bio/db/fasta/defline' # change to FastaFormat::Defline ?
+  autoload :Fastq,          'bio/db/fastq'
   autoload :GFF,            'bio/db/gff'
   autoload :AAindex,        'bio/db/aaindex'
   autoload :AAindex1,       'bio/db/aaindex' # change to AAindex::AAindex1 ?
@@ -130,9 +131,21 @@ module Bio
   autoload :REBASE,         'bio/db/rebase'
   autoload :SOFT,           'bio/db/soft'
   autoload :Lasergene,      'bio/db/lasergene'
+  autoload :SangerChromatogram, 'bio/db/sanger_chromatogram/chromatogram'
+  autoload :Scf,                'bio/db/sanger_chromatogram/scf'
+  autoload :Abif,               'bio/db/sanger_chromatogram/abif'
 
   autoload :Newick,         'bio/db/newick'
   autoload :Nexus,          'bio/db/nexus'
+
+  autoload :PhyloXML,       'bio/db/phyloxml/phyloxml_elements'
+  # Bio::Taxonomy will be moved to other file
+  autoload :Taxonomy,       'bio/db/phyloxml/phyloxml_elements'
+  ## below are described in bio/db/phyloxml/phyloxml_elements.rb
+  #module PhyloXML
+  #  autoload :Parser,       'bio/db/phyloxml/phyloxml_parser'
+  #  autoload :Writer,       'bio/db/phyloxml/phyloxml_writer'
+  #end
 
   ### IO interface modules
 

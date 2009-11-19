@@ -16,7 +16,7 @@ module Bio
 
 class Fasta
 
-  #autoload :Report, 'bio/appl/fasta/format10'
+  autoload :Report, 'bio/appl/fasta/format10'
   #autoload :?????,  'bio/appl/fasta/format6'
 
   # Returns a FASTA factory object (Bio::Fasta).
@@ -66,14 +66,13 @@ class Fasta
   end
   attr_reader :format
 
-  # Select parser to use ('format6' and 'format10' is acceptable for now)
+  # OBSOLETE. Does nothing and shows warning messages.
   #
-  # This method will import Bio::Fasta::Report class by requiring specified
-  # parser and will be useful when you already have fasta output files and
-  # want to use appropriate Report class for parsing.
+  # Historically, selecting parser to use ('format6' or 'format10' were
+  # expected, but only 'format10' was available as a working parser).
   #
   def self.parser(parser)
-    require "bio/appl/fasta/#{parser}"
+    warn 'Bio::Fasta.parser is obsoleted and will soon be removed.'
   end
 
   # Returns a FASTA factory object (Bio::Fasta) to run FASTA search on
@@ -102,12 +101,6 @@ class Fasta
 
 
   def parse_result(data)
-    case @format
-    when 6
-      require 'bio/appl/fasta/format6'
-    when 10
-      require 'bio/appl/fasta/format10'
-    end
     Report.new(data)
   end
 

@@ -8,11 +8,12 @@
 #  $Id:$
 #
 
+# loading helper routine for testing bioruby
 require 'pathname'
-libpath = Pathname.new(File.join(File.dirname(__FILE__), ['..'] * 3, 'lib')).cleanpath.to_s
-$:.unshift(libpath) unless $:.include?(libpath)
+load Pathname.new(File.join(File.dirname(__FILE__), ['..'] * 2,
+                            'bioruby_test_helper.rb')).cleanpath.to_s
 
-
+# libraries needed for the tests
 require 'test/unit'
 require 'tempfile'
 require 'bio/command'
@@ -23,8 +24,7 @@ module Bio
     def setup
       case RUBY_PLATFORM
       when /mswin32|bccwin32/
-        bioruby_root = Pathname.new(File.join(File.dirname(__FILE__), ['..'] * 3)).cleanpath.to_s
-        cmd = File.expand_path(File.join(bioruby_root, 'test', 'data', 'command', 'echoarg2.bat'))
+        cmd = File.expand_path(File.join(BioRubyTestDataPath, 'command', 'echoarg2.bat'))
         @arg = [ cmd, 'test "argument 1"', '"test" argument 2', 'arg3' ]
         @expected = '"""test"" argument 2"'
       else
@@ -281,6 +281,55 @@ module Bio
       end
     end
   end #class FuncTestCommandBackports
+
+  class FuncTestCommandTmpdir < Test::Unit::TestCase
+    def setup
+      if RUBY_VERSION < "1.8.3"
+        @notest = true
+      else
+        @notest = false
+      end
+    end
+
+    def test_initialize
+      return if @notest
+      tmpdir = Bio::Command::Tmpdir.new('bioruby')
+      assert_instance_of(Bio::Command::Tmpdir, tmpdir)
+      assert(File.directory?(tmpdir.path))
+      assert_nothing_raised {
+        # creates a dummy file
+        File.open(File.join(tmpdir.path, 'test'), 'w') do |w|
+          w.print "This is test."
+        end
+      }
+    end
+
+    def test_path
+      return if @notest
+      tmpdir = Bio::Command::Tmpdir.new('bioruby')
+      assert_kind_of(String, tmpdir.path)
+      assert(File.directory?(tmpdir.path))
+    end
+
+    def test_close!
+      return if @notest
+      tmpdir = Bio::Command::Tmpdir.new('bioruby')
+      path = tmpdir.path
+      # creates a dummy file
+      File.open(File.join(tmpdir.path, 'test'), 'w') do |w|
+        w.print "This is test."
+      end
+      assert_nothing_raised { tmpdir.close! }
+      assert_equal(false, File.directory?(path))
+    end
+
+    def test_path_after_close
+      return if @notest
+      tmpdir = Bio::Command::Tmpdir.new('bioruby')
+      tmpdir.close!
+      assert_raise(IOError) { tmpdir.path }
+    end
+  end #class FuncTestCommandTmpdir
 
   class FuncTestCommandNet < Test::Unit::TestCase
     def test_read_uri

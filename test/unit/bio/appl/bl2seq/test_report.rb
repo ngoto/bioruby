@@ -6,21 +6,22 @@
 #                Mitsuteru C. Nakao <n@bioruby.org>
 #  License::     The Ruby License
 #
-#  $Id: test_report.rb,v 1.3 2007/04/05 23:35:43 trevor Exp $
+#  $Id:$
 #
 
+# loading helper routine for testing bioruby
 require 'pathname'
-libpath = Pathname.new(File.join(File.join(File.dirname(__FILE__), ['..'] * 5, 'lib'))).cleanpath.to_s
-$:.unshift(libpath) unless $:.include?(libpath)
+load Pathname.new(File.join(File.dirname(__FILE__), ['..'] * 4,
+                            'bioruby_test_helper.rb')).cleanpath.to_s
 
+# libraries needed for the tests
 require 'test/unit'
 require 'bio/appl/bl2seq/report'
 
 
 module Bio
   class TestBl2seqReportData
-    bioruby_root = Pathname.new(File.join(File.dirname(__FILE__), ['..'] * 5)).cleanpath.to_s
-    TestDataBl2seq = Pathname.new(File.join(bioruby_root, 'test', 'data', 'bl2seq')).cleanpath.to_s
+    TestDataBl2seq = Pathname.new(File.join(BioRubyTestDataPath, 'bl2seq')).cleanpath.to_s
 
     def self.output(format = 7)
       case format
@@ -70,11 +71,11 @@ module Bio
                  'db']
       
       methods.each do |x|
-        assert_nil(@empty.methods.include?(x))
+        assert_equal(false, @empty.methods.include?(x), "undefined? : #{x}")
       end
 
       methods.each do |x|
-        assert_nil(@blastp.methods.include?(x))
+        assert_equal(false, @blastp.methods.include?(x), "undefined? : #{x}")
       end
     end
 
@@ -91,7 +92,7 @@ module Bio
     end
 
 #    TestIteration < Test::Unit::TestCase
-    def test_undefed_methods
+    def test_undefed_methods_for_iteration
       methods = ['message',
                  'pattern_in_database',
                  'pattern',
@@ -103,7 +104,7 @@ module Bio
                  'converged?']
 
       methods.each do |x|
-        assert_equal(false, @empty.iterations.first.methods.include?(x), "undifined? : #{x}")
+        assert_equal(false, @empty.iterations.first.methods.include?(x), "undefined? : #{x}")
       end
 
       methods.each do |x|

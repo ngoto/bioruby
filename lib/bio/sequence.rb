@@ -150,6 +150,22 @@ class Sequence
   # but could be a simple String
   attr_accessor :seq
 
+  # Quality scores of the bases/residues in the sequence.
+  # (Array containing Integer, or nil)
+  attr_accessor :quality_scores
+
+  # The meaning (calculation method) of the quality scores stored in
+  # the <tt>quality_scores</tt> attribute.
+  # Maybe one of :phred, :solexa, or nil.
+  #
+  # Note that if it is nil, and <tt>error_probabilities</tt> is empty,
+  # some methods implicitly assumes that it is :phred (PHRED score).
+  attr_accessor :quality_score_type
+
+  # Error probabilities of the bases/residues in the sequence.
+  # (Array containing Float, or nil)
+  attr_accessor :error_probabilities
+
   #---
   # Attributes below have been added during BioHackathon2008
   #+++

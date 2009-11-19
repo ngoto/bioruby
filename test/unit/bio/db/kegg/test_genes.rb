@@ -4,17 +4,44 @@
 # Copyright::  Copyright (C) 2005 Mitsuteru Nakao <n@bioruby.org>
 # License::    The Ruby License
 #
-#  $Id: test_genes.rb,v 1.5 2007/04/05 23:35:43 trevor Exp $
+#  $Id:$
 #
 
+# loading helper routine for testing bioruby
 require 'pathname'
-libpath = Pathname.new(File.join(File.dirname(__FILE__), ['..'] * 5, 'lib')).cleanpath.to_s
-$:.unshift(libpath) unless $:.include?(libpath)
+load Pathname.new(File.join(File.dirname(__FILE__), ['..'] * 4,
+                            'bioruby_test_helper.rb')).cleanpath.to_s
 
+# libraries needed for the tests
 require 'test/unit'
 require 'bio/db/kegg/genes'
 
 module Bio
+  class TestGenesStructure < Test::Unit::TestCase
+    def setup
+      entry =<<END
+STRUCTURE   PDB: 1A9X 1CS0 1C30 1T36 1M6V 1KEE 1C3O 1CE8 1BXR 1JDB
+END
+      @obj = Bio::KEGG::GENES.new(entry)
+    end
+    
+    def test_data
+      str = "STRUCTURE   PDB: 1A9X 1CS0 1C30 1T36 1M6V 1KEE 1C3O 1CE8 1BXR 1JDB"
+      assert_equal(str, @obj.instance_eval('get("STRUCTURE")'))
+    end
+
+    def test_ids_in_array
+      assert_equal(Array, @obj.structure.class)
+    end
+
+    def test_id
+      assert_equal(10, @obj.structure.size)
+      assert_equal('PDB:1A9X', @obj.structure.first)
+    end
+
+  end
+
+
   class TestGenesDblinks < Test::Unit::TestCase
 
     def setup

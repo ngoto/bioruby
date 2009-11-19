@@ -4,13 +4,15 @@
 # Copyright::  Copyright (C) 2006 Mitsuteru Nakao <n@bioruby.org>
 # License::    The Ruby License
 #
-#  $Id: test_report.rb,v 1.3 2007/04/05 23:35:43 trevor Exp $
+#  $Id:$
 #
 
+# loading helper routine for testing bioruby
 require 'pathname'
-libpath = Pathname.new(File.join(File.join(File.dirname(__FILE__), ['..'] * 5, 'lib'))).cleanpath.to_s
-$:.unshift(libpath) unless $:.include?(libpath)
+load Pathname.new(File.join(File.dirname(__FILE__), ['..'] * 4,
+                            'bioruby_test_helper.rb')).cleanpath.to_s
 
+# libraries needed for the tests
 require 'test/unit'
 require 'bio/appl/hmmer/report'
 
@@ -18,8 +20,7 @@ require 'bio/appl/hmmer/report'
 module Bio
 
   class TestHMMERReportData
-    bioruby_root = Pathname.new(File.join(File.dirname(__FILE__), ['..'] * 5)).cleanpath.to_s
-    TestDataHMMER = Pathname.new(File.join(bioruby_root, 'test', 'data', 'HMMER')).cleanpath.to_s
+    TestDataHMMER = Pathname.new(File.join(BioRubyTestDataPath, 'HMMER')).cleanpath.to_s
 
     def self.hmmpfam
       File.open(File.join(TestDataHMMER, 'hmmpfam.out')).read 
@@ -41,7 +42,7 @@ module Bio
       assert_equal(Array, ary.class)
     end
 
-    def test_reports_ary
+    def test_reports_ary_contents
       Bio::HMMER.reports(Bio::TestHMMERReportData.output).each do |report|
         assert_equal(Bio::HMMER::Report, report.class)
       end

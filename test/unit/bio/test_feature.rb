@@ -5,13 +5,15 @@
 #              Mitsuteru Nakao <n@bioruby.org>
 # License::    The Ruby License
 #
-#  $Id: test_feature.rb,v 1.5.2.1 2008/05/08 05:38:01 ngoto Exp $
+#  $Id:$
 #
 
+# loading helper routine for testing bioruby
 require 'pathname'
-libpath = Pathname.new(File.join(File.dirname(__FILE__), ['..'] * 3 , 'lib')).cleanpath.to_s
-$:.unshift(libpath) unless $:.include?(libpath)
+load Pathname.new(File.join(File.dirname(__FILE__), ['..'] * 2,
+                            'bioruby_test_helper.rb')).cleanpath.to_s
 
+# libraries needed for the tests
 require 'test/unit'
 require 'bio/feature'
 require 'bio/compat/features'
@@ -89,25 +91,26 @@ module Bio
     end
   end
 
-  class NullStderr
-    def initialize
-      @log = []
-    end
-
-    def write(*arg)
-      #p arg
-      @log.push([ :write, *arg ])
-      nil
-    end
-
-    def method_missing(*arg)
-      #p arg
-      @log.push arg
-      nil
-    end
-  end
-
   class TestFeatures < Test::Unit::TestCase
+
+    class NullStderr
+      def initialize
+        @log = []
+      end
+
+      def write(*arg)
+        #p arg
+        @log.push([ :write, *arg ])
+        nil
+      end
+
+      def method_missing(*arg)
+        #p arg
+        @log.push arg
+        nil
+      end
+    end #class NullStderr
+
     def setup
       # To suppress warning messages, $stderr is replaced by dummy object.
       @stderr_orig = $stderr
