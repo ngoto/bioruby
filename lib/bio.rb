@@ -115,7 +115,6 @@ module Bio
   autoload :FastaFormat,    'bio/db/fasta'
   autoload :FastaNumericFormat, 'bio/db/fasta' # change to FastaFormat::Numeric ?
   autoload :FastaDefline,       'bio/db/fasta' # change to FastaFormat::Defline
-  autoload :Fastq,          'bio/db/fastq'
   autoload :GFF,            'bio/db/gff'
   autoload :AAindex,        'bio/db/aaindex'
   autoload :AAindex1,       'bio/db/aaindex' # change to AAindex::AAindex1 ?
