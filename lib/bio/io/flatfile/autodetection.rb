@@ -477,9 +477,6 @@ module Bio
           sim4   = RuleRegexp[ 'Bio::Sim4::Report',
             /^seq1 \= .*\, \d+ bp(\r|\r?\n)seq2 \= .*\, \d+ bp(\r|\r?\n)/ ],
 
-          fastq  = RuleRegexp[ 'Bio::Fastq',
-            /^\@.+(?:\r|\r?\n)(?:[^\@\+].*(?:\r|\r?\n))+\+.*(?:\r|\r?\n).+(?:\r|\r?\n)/ ],
-
           fastaformat = RuleProc.new('Bio::FastaFormat',
                                      'Bio::NBRF',
                                      'Bio::FastaNumericFormat') do |text|
@@ -524,9 +521,6 @@ module Bio
         wublast.is_prior_to wutblast
         wutblast.is_prior_to blast
         blast.is_prior_to tblast
-        # Fastq
-        BottomRule.is_prior_to(fastq)
-        fastq.is_prior_to(fastaformat)
         # FastaFormat
         BottomRule.is_prior_to(fastaformat)
 
