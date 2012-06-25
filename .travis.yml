@@ -7,6 +7,10 @@ rvm:
   - jruby-18mode # JRuby in 1.8 mode
   - rbx-19mode
   - rbx-18mode
+env:
+  - BIORUBY_RAKE_DEFAULT_TASK=test
+  - BIORUBY_RAKE_DEFAULT_TASK=gem-integration-test
+  - BIORUBY_RAKE_DEFAULT_TASK=tar-integration-test
 gemfile:
   - gemfiles/Gemfile.travis-ruby1.9
   - gemfiles/Gemfile.travis-ruby1.8
