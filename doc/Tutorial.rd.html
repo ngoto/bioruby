@@ -4,43 +4,47 @@
   "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml">
 <head>
-<title>doc/Tutorial.rd</title>
+<title>Tutorial.rd</title>
 <link href="bioruby.css" type="text/css" rel="stylesheet" />
 </head>
 <body>
 <h1><a name="label-0" id="label-0">BioRuby Tutorial</a></h1><!-- RDLabel: "BioRuby Tutorial" -->
 <ul>
 <li>Copyright (C) 2001-2003 KATAYAMA Toshiaki &lt;k .at. bioruby.org&gt;</li>
-<li>Copyright (C) 2005-2009 Pjotr Prins, Naohisa Goto and others</li>
+<li>Copyright (C) 2005-2011 Pjotr Prins, Naohisa Goto and others</li>
 </ul>
-<p>This document was last modified: 2009/03/17
-Current editor: Pjotr Prins &lt;p .at. bioruby.org&gt;</p>
-<p>The latest version resides in the GIT source code repository:  ./doc/<a href="http://github.com/pjotrp/bioruby/raw/documentation/doc/Tutorial.rd">Tutorial.rd</a>.</p>
+<p>This document was last modified: 2011/10/14
+Current editor: Michael O'Keefe &lt;okeefm (at) rpi (dot) edu&gt;</p>
+<p>The latest version resides in the GIT source code repository:  ./doc/<a href="https://github.com/bioruby/bioruby/blob/master/doc/Tutorial.rd">Tutorial.rd</a>.</p>
 <h2><a name="label-1" id="label-1">Introduction</a></h2><!-- RDLabel: "Introduction" -->
 <p>This is a tutorial for using Bioruby. A basic knowledge of Ruby is required.
-If you want to know more about the programming langauge Ruby we recommend the
+If you want to know more about the programming language, we recommend the
 latest Ruby book <a href="http://www.pragprog.com/titles/ruby">Programming Ruby</a>
-by Dave Thomas and Andy Hunt - some of it is online
-<a href="http://www.rubycentral.com/pickaxe/">here</a>.</p>
+by Dave Thomas and Andy Hunt - the first edition can be read online
+<a href="http://www.ruby-doc.org/docs/ProgrammingRuby/">here</a>.</p>
 <p>For BioRuby you need to install Ruby and the BioRuby package on your computer</p>
 <p>You can check whether Ruby is installed on your computer and what
 version it has with the</p>
 <pre>% ruby -v</pre>
-<p>command. Showing something like:</p>
-<pre>ruby 1.8.7 (2008-08-11 patchlevel 72) [i486-linux]</pre>
+<p>command. You should see something like:</p>
+<pre>ruby 1.9.2p290 (2011-07-09 revision 32553) [i686-linux]</pre>
 <p>If you see no such thing you'll have to install Ruby using your installation
 manager. For more information see the
 <a href="http://www.ruby-lang.org/en/">Ruby</a> website.</p>
-<p>Once Ruby is works download and install Bioruby using the links on the
-<a href="http://bioruby.org/">Bioruby</a> website.</p>
+<p>With Ruby download and install Bioruby using the links on the
+<a href="http://bioruby.org/">Bioruby</a> website. The recommended installation is via 
+RubyGems:</p>
+<pre>gem install bio</pre>
+<p>See also the Bioruby <a href="http://bioruby.open-bio.org/wiki/Installation">wiki</a>.</p>
 <p>A lot of BioRuby's documentation exists in the source code and unit tests. To
 really dive in you will need the latest source code tree. The embedded rdoc
 documentation can be viewed online at
 <a href="http://bioruby.org/rdoc/">bioruby's rdoc</a>. But first lets start!</p>
 <h2><a name="label-2" id="label-2">Trying Bioruby</a></h2><!-- RDLabel: "Trying Bioruby" -->
-<p>Bioruby comes with its own shell. After unpacking the sources run the
-following command</p>
-<pre>./bin/bioruby  or
+<p>Bioruby comes with its own shell. After unpacking the sources run one of the following commands:</p>
+<pre>bioruby</pre>
+<p>or, from the source tree</p>
+<pre>cd bioruby
 ruby -I lib bin/bioruby</pre>
 <p>and you should see a prompt</p>
 <pre>bioruby&gt;</pre>
@@ -57,11 +61,11 @@ question to the mailing list. BioRuby developers usually try to help.</p>
 <h2><a name="label-3" id="label-3">Working with nucleic / amino acid sequences (Bio::Sequence class)</a></h2><!-- RDLabel: "Working with nucleic / amino acid sequences (Bio::Sequence class)" -->
 <p>The Bio::Sequence class allows the usual sequence transformations and
 translations.  In the example below the DNA sequence "atgcatgcaaaa" is
-converted into the complemental strand, spliced into a subsequence,
-next the nucleic acid composition is calculated and the sequence is
+converted into the complemental strand and spliced into a subsequence; 
+next, the nucleic acid composition is calculated and the sequence is
 translated into the amino acid sequence, the molecular weight
-calculated, and so on. When translating into amino acid sequences the
-frame can be specified and optionally the condon table selected (as
+calculated, and so on. When translating into amino acid sequences, the
+frame can be specified and optionally the codon table selected (as
 defined in codontable.rb).</p>
 <pre>bioruby&gt; seq = Bio::Sequence::NA.new("atgcatgcaaaa")
 ==&gt; "atgcatgcaaaa"
@@ -70,7 +74,7 @@ defined in codontable.rb).</p>
 bioruby&gt; seq.complement
 ==&gt; "ttttgcatgcat"
 
-bioruby&gt; seq.subseq(3,8) # gets subsequence of positions 3 to 8
+bioruby&gt; seq.subseq(3,8) # gets subsequence of positions 3 to 8 (starting from 1)
 ==&gt; "gcatgc"
 bioruby&gt; seq.gc_percent 
 ==&gt; 33
@@ -109,10 +113,10 @@ Windows). For example</p>
 <pre>% ri puts
 % ri p
 % ri File.open</pre>
-<p>Nucleic acid sequence is an object of Bio::Sequence::NA class, and
-amino acid sequence is an object of Bio::Sequence::AA class.  Shared
+<p>Nucleic acid sequence are members of the Bio::Sequence::NA class, and
+amino acid sequence are members of the Bio::Sequence::AA class.  Shared
 methods are in the parent Bio::Sequence class.</p>
-<p>As Bio::Sequence class inherits Ruby's String class, you can use
+<p>As Bio::Sequence inherits Ruby's String class, you can use
 String class methods. For example, to get a subsequence, you can
 not only use subseq(from, to) but also String#[].</p>
 <p>Please take note that the Ruby's string's are base 0 - i.e. the first letter
@@ -125,14 +129,13 @@ bioruby&gt; s[0..1]
 ==&gt; "ab"</pre>
 <p>So when using String methods, you should subtract 1 from positions
 conventionally used in biology.  (subseq method will throw an exception if you
-specify positions smaller than or equal to 0 for either one of the "from" or
-"to".)</p>
+specify positions smaller than or equal to 0 for either one of the "from" or "to".)</p>
 <p>The window_search(window_size, step_size) method shows a typical Ruby
 way of writing concise and clear code using 'closures'. Each sliding
 window creates a subsequence which is supplied to the enclosed block
 through a variable named +s+.</p>
 <ul>
-<li><p>Show average percentage of GC content for 20 bases (stepping the default one base at a time)</p>
+<li><p>Show average percentage of GC content for 20 bases (stepping the default one base at a time):</p>
 <pre>bioruby&gt; seq = Bio::Sequence::NA.new("atgcatgcaattaagctaatcccaattagatcatcccgatcatcaaaaaaaaaa")
 ==&gt; "atgcatgcaattaagctaatcccaattagatcatcccgatcatcaaaaaaaaaa"
 
@@ -192,8 +195,8 @@ my_naseq = Bio::Sequence::NA.new(input_seq)
 my_aaseq = my_naseq.translate
 
 puts my_aaseq</pre>
-<p>Save the program as na2aa.rb. Prepare a nucleic acid sequence
-described below and saves it as my_naseq.txt:</p>
+<p>Save the program above as na2aa.rb. Prepare a nucleic acid sequence
+described below and save it as my_naseq.txt:</p>
 <pre>gtggcgatctttccgaaagcgatgactggagcgaagaaccaaagcagtgacatttgtctg
 atgccgcacgtaggcctgataagacgcggacagcgtcgcatcaggcatcttgtgcaaatg
 tcggatgcggcgtga</pre>
@@ -204,7 +207,7 @@ For example, translates my_naseq.txt:</p>
 <pre>% cat my_naseq.txt|ruby na2aa.rb</pre>
 <p>Outputs</p>
 <pre>VAIFPKAMTGAKNQSSDICLMPHVGLIRRGQRRIRHLVQMSDAA*</pre>
-<p>You can also write this, a bit fanciful, as a one-liner script.</p>
+<p>You can also write this, a bit fancifully, as a one-liner script.</p>
 <pre>% ruby -r bio -e 'p Bio::Sequence::NA.new($&lt;.read).translate' my_naseq.txt</pre>
 <p>In the next section we will retrieve data from databases instead of using raw
 sequence files. One generic example of the above can be found in
@@ -212,7 +215,7 @@ sequence files. One generic example of the above can be found in
 <h2><a name="label-4" id="label-4">Parsing GenBank data (Bio::GenBank class)</a></h2><!-- RDLabel: "Parsing GenBank data (Bio::GenBank class)" -->
 <p>We assume that you already have some GenBank data files. (If you don't,
 download some .seq files from ftp://ftp.ncbi.nih.gov/genbank/)</p>
-<p>As an example we fetch the ID, definition and sequence of each entry
+<p>As an example we will fetch the ID, definition and sequence of each entry
 from the GenBank format and convert it to FASTA. This is also an example
 script in the BioRuby distribution.</p>
 <p>A first attempt could be to use the Bio::GenBank class for reading in
@@ -253,7 +256,7 @@ ff.each_entry do |f|
   puts "nalen      : " + f.nalen.to_s
   puts "naseq      : " + f.naseq
 end</pre>
-<p>In above two scripts, the first arguments of Bio::FlatFile.new are
+<p>In the above two scripts, the first arguments of Bio::FlatFile.new are
 database classes of BioRuby. This is expanded on in a later section.</p>
 <p>Again another option is to use the Bio::DB.open class:</p>
 <pre>#!/usr/bin/env ruby
@@ -308,12 +311,9 @@ end</pre>
 <ul>
 <li>Note: In this example Feature#assoc method makes a Hash from a
   feature object. It is useful because you can get data from the hash
-  by using qualifiers as keys.
-  (But there is a risk some information is lost when two or more
-  qualifiers are the same. Therefore an Array is returned by
-  Feature#feature)</li>
+  by using qualifiers as keys. But there is a risk some information is lost  when two or more qualifiers are the same. Therefore an Array is returned by  Feature#feature.</li>
 </ul>
-<p>Bio::Sequence#splicing splices subsequence from nucleic acid sequence
+<p>Bio::Sequence#splicing splices subsequences from nucleic acid sequences
 according to location information used in GenBank, EMBL and DDBJ.</p>
 <p>When the specified translation table is different from the default
 (universal), or when the first codon is not "atg" or the protein
@@ -329,7 +329,7 @@ bio/location.rb.</p>
 <pre>locs = Bio::Locations.new('join((8298.8300)..10206,1..855)')
 naseq.splicing(locs)</pre></li>
 </ul>
-<p>You can also use the splicing method for amino acid sequences
+<p>You can also use this splicing method for amino acid sequences
 (Bio::Sequence::AA objects).</p>
 <ul>
 <li><p>Splicing peptide from a protein (e.g. signal peptide)</p>
@@ -341,10 +341,7 @@ with classes like Bio::GenBank, Bio::KEGG::GENES. A full list can be found in
 the ./lib/bio/db directory of the BioRuby source tree.</p>
 <p>In many cases the Bio::DatabaseClass acts as a factory pattern
 and recognises the database type automatically - returning a
-parsed object. For example using Bio::FlatFile</p>
-<p>Bio::FlatFile class as described above. The first argument of the
-Bio::FlatFile.new is database class name in BioRuby (such as Bio::GenBank,
-Bio::KEGG::GENES and so on).</p>
+parsed object. For example using Bio::FlatFile class as described above. The first argument of the Bio::FlatFile.new is database class name in BioRuby (such as Bio::GenBank, Bio::KEGG::GENES and so on).</p>
 <pre>ff = Bio::FlatFile.new(Bio::DatabaseClass, ARGF)</pre>
 <p>Isn't it wonderful that Bio::FlatFile automagically recognizes each
 database class?</p>
@@ -358,16 +355,15 @@ ff.each_entry do |entry|
   p entry.definition        # definition of the entry
   p entry.seq               # sequence data of the entry
 end</pre>
-<p>An example that can take any input, filter using a regular expression to output
+<p>An example that can take any input, filter using a regular expression and output
 to a FASTA file can be found in sample/any2fasta.rb. With this technique it is
 possible to write a Unix type grep/sort pipe for sequence information. One
 example using scripts in the BIORUBY sample folder:</p>
 <pre>fastagrep.rb '/At|Dm/' database.seq | fastasort.rb</pre>
-<p>greps the database for Arabidopsis and Drosophila entries and sorts the output
-to FASTA.</p>
+<p>greps the database for Arabidopsis and Drosophila entries and sorts the output to FASTA.</p>
 <p>Other methods to extract specific data from database objects can be
 different between databases, though some methods are common (see the
-guidelines for common methods as described in bio/db.rb).</p>
+guidelines for common methods in bio/db.rb).</p>
 <ul>
 <li>entry_id --&gt; gets ID of the entry</li>
 <li>definition --&gt; gets definition of the entry</li>
@@ -377,14 +373,13 @@ guidelines for common methods as described in bio/db.rb).</p>
 </ul>
 <p>Refer to the documents of each database to find the exact naming
 of the included methods.</p>
-<p>In principal BioRuby uses the following conventions: when a method
-name is plural the method returns some object as an Array. For
+<p>In general, BioRuby uses the following conventions: when a method
+name is plural, the method returns some object as an Array. For
 example, some classes have a "references" method which returns
 multiple Bio::Reference objects as an Array. And some classes have a
 "reference" method which returns a single Bio::Reference object.</p>
 <h3><a name="label-6" id="label-6">Alignments (Bio::Alignment)</a></h3><!-- RDLabel: "Alignments (Bio::Alignment)" -->
-<p>Bio::Alignment class in bio/alignment.rb is a container class like Ruby's Hash,
-Array and BioPerl's Bio::SimpleAlign.  A very simple example is:</p>
+<p>The Bio::Alignment class in bio/alignment.rb is a container class like Ruby's Hash and Array classes and BioPerl's Bio::SimpleAlign.  A very simple example is:</p>
 <pre>bioruby&gt; seqs = [ 'atgca', 'aagca', 'acgca', 'acgcg' ]
 bioruby&gt; seqs = seqs.collect{ |x| Bio::Sequence::NA.new(x) }
 # creates alignment object
@@ -414,15 +409,32 @@ a.each_site { |x| p x }
 # clustalw command must be installed.
 factory = Bio::ClustalW.new
 a2 = a.do_align(factory)</pre>
+<p>Read a ClustalW or Muscle 'ALN' alignment file:</p>
+<pre>bioruby&gt; aln = Bio::ClustalW::Report.new(File.read('../test/data/clustalw/example1.aln'))
+bioruby&gt; aln.header
+==&gt; "CLUSTAL 2.0.9 multiple sequence alignment"</pre>
+<p>Fetch a sequence:</p>
+<pre>bioruby&gt; seq = aln.get_sequence(1)
+bioruby&gt; seq.definition
+==&gt; "gi|115023|sp|P10425|"</pre>
+<p>Get a partial sequence:</p>
+<pre>bioruby&gt; seq.to_s[60..120]
+==&gt; "LGYFNG-EAVPSNGLVLNTSKGLVLVDSSWDNKLTKELIEMVEKKFQKRVTDVIITHAHAD"</pre>
+<p>Show the full alignment residue match information for the sequences in the set:</p>
+<pre>bioruby&gt; aln.match_line[60..120]
+==&gt; "     .     **. .   ..   ::*:       . * : : .        .: .* * *"</pre>
+<p>Return a Bio::Alignment object:</p>
+<pre>bioruby&gt; aln.alignment.consensus[60..120]
+==&gt; "???????????SN?????????????D??????????L??????????????????H?H?D"</pre>
 <h2><a name="label-7" id="label-7">Restriction Enzymes (Bio::RE)</a></h2><!-- RDLabel: "Restriction Enzymes (Bio::RE)" -->
 <p>BioRuby has extensive support for restriction enzymes (REs). It contains a full
 library of commonly used REs (from REBASE) which can be used to cut single
-stranded RNA or dubbel stranded DNA into fragments. To list all enzymes:</p>
+stranded RNA or double stranded DNA into fragments. To list all enzymes:</p>
 <pre>rebase = Bio::RestrictionEnzyme.rebase
 rebase.each do |enzyme_name, info|
   p enzyme_name
 end</pre>
-<p>and cut a sequence with an enzyme follow up with:</p>
+<p>and to cut a sequence with an enzyme follow up with:</p>
 <pre>res = seq.cut_with_enzyme('EcoRII', {:max_permutations =&gt; 0}, 
   {:view_ranges =&gt; true})
 if res.kind_of? Symbol #error
@@ -448,12 +460,12 @@ res.each do |frag|
 <p>Let's start with a query.pep file which contains a sequence in FASTA
 format.  In this example we are going to execute a homology search
 from a remote internet site or on your local machine. Note that you
-can use the ssearch program instead of fasta when you use them in your
+can use the ssearch program instead of fasta when you use it in your
 local machine.</p>
 <h3><a name="label-9" id="label-9">using FASTA in local machine</a></h3><!-- RDLabel: "using FASTA in local machine" -->
 <p>Install the fasta program on your machine (the command name looks like
-fasta34. FASTA can be downloaded from ftp://ftp.virginia.edu/pub/fasta/).
-First, you must prepare your FASTA-formatted database sequence file
+fasta34. FASTA can be downloaded from ftp://ftp.virginia.edu/pub/fasta/).</p>
+<p>First, you must prepare your FASTA-formatted database sequence file
 target.pep and FASTA-formatted query.pep. </p>
 <pre>#!/usr/bin/env ruby
 
@@ -486,19 +498,18 @@ ff.each do |entry|
     end
   end
 end</pre>
-<p>We named above script as f_search.rb. You can execute as follows:</p>
+<p>We named above script f_search.rb. You can execute it as follows:</p>
 <pre>% ./f_search.rb query.pep target.pep &gt; f_search.out</pre>
 <p>In above script, the variable "factory" is a factory object for executing
 FASTA many times easily. Instead of using Fasta#query method,
 Bio::Sequence#fasta method can be used.</p>
 <pre>seq = "&gt;test seq\nYQVLEEIGRGSFGSVRKVIHIPTKKLLVRKDIKYGHMNSKE"
 seq.fasta(factory)</pre>
-<p>When you want to add options to FASTA command, you can set the
-third argument of Bio::Fasta.local method. For example, setting ktup to 1
-and getting top-10 hits:</p>
+<p>When you want to add options to FASTA commands, you can set the
+third argument of the Bio::Fasta.local method. For example, the following sets ktup to 1 and gets a list of the top 10 hits:</p>
 <pre>factory = Bio::Fasta.local('fasta34', 'target.pep', '-b 10')
 factory.ktup = 1</pre>
-<p>Bio::Fasta#query returns Bio::Fasta::Report object.
+<p>Bio::Fasta#query returns a Bio::Fasta::Report object.
 We can get almost all information described in FASTA report text
 with the Report object. For example, getting information for hits:</p>
 <pre>report.each do |hit|
@@ -524,11 +535,10 @@ with the Report object. For example, getting information for hits:</p>
                             # in hit(target) sequence
   puts hit.lap_at           # array of above four numbers
 end</pre>
-<p>Most of above methods are common with the Bio::Blast::Report described
-below. Please refer to document of Bio::Fasta::Report class for
+<p>Most of above methods are common to the Bio::Blast::Report described
+below. Please refer to the documentation of the Bio::Fasta::Report class for
 FASTA-specific details.</p>
-<p>If you need original output text of FASTA program you can use the "output"
-method of the factory object after the "query" method.</p>
+<p>If you need the original output text of FASTA program you can use the "output" method of the factory object after the "query" method.</p>
 <pre>report = factory.query(entry)
 puts factory.output</pre>
 <h3><a name="label-10" id="label-10">using FASTA from a remote internet site</a></h3><!-- RDLabel: "using FASTA from a remote internet site" -->
@@ -555,7 +565,7 @@ same things as with a local method.</p>
 <p>Select the databases you require.  Next, give the search program from
 the type of query sequence and database.</p>
 <ul>
-<li>When query is a amino acid sequence
+<li>When query is an amino acid sequence
 <ul>
 <li>When protein database, program is "fasta".</li>
 <li>When nucleic database, program is "tfasta".</li>
@@ -563,10 +573,10 @@ the type of query sequence and database.</p>
 <li>When query is a nucleic acid sequence
 <ul>
 <li>When nucleic database, program is "fasta".</li>
-<li>(When protein database, you would fail to search.)</li>
+<li>(When protein database, the search would fail.)</li>
 </ul></li>
 </ul>
-<p>For example:</p>
+<p>For example, run:</p>
 <pre>program = 'fasta'
 database = 'genes'
 
@@ -597,7 +607,7 @@ The parameter "program" is different from FASTA - as you can expect:</p>
 <p>Bio::BLAST uses "-m 7" XML output of BLAST by default when either
 XMLParser or REXML (both of them are XML parser libraries for Ruby -
 of the two XMLParser is the fastest) is installed on your computer. In
-Ruby version 1.8.0, or later, REXML is bundled with Ruby's
+Ruby version 1.8.0 or later, REXML is bundled with Ruby's
 distribution.</p>
 <p>When no XML parser library is present, Bio::BLAST uses "-m 8" tabular
 deliminated format. Available information is limited with the
@@ -628,9 +638,9 @@ midline.</p>
   puts hit.lap_at          
 end</pre>
 <p>For simplicity and API compatibility, some information such as score
-are extracted from the first Hsp (High-scoring Segment Pair).</p>
+is extracted from the first Hsp (High-scoring Segment Pair).</p>
 <p>Check the documentation for Bio::Blast::Report to see what can be
-retrieved. For now suffice to state that Bio::Blast::Report has a
+retrieved. For now suffice to say that Bio::Blast::Report has a
 hierarchical structure mirroring the general BLAST output stream:</p>
 <ul>
 <li>In a Bio::Blast::Report object, @iterations is an array of
@@ -652,19 +662,19 @@ Bio::Blast factory object. For this purpose use Bio::Blast.reports,
 which supports the "-m 0" default and "-m 7" XML type output format.</p>
 <ul>
 <li><p>For example: </p>
-<pre>bioruby&gt; blast_version = nil; result = []
-bioruby&gt; Bio::Blast.reports(File.new("../test/data/blast/blastp-multi.m7")) do |report|
-bioruby&gt;   blast_version = report.version
-bioruby&gt;   report.iterations.each do |itr|
-bioruby&gt;     itr.hits.each do |hit|
-bioruby&gt;       result.push hit.target_id
-bioruby&gt;     end
-bioruby&gt;   end
-bioruby&gt; end
-bioruby&gt; blast_version
-==&gt; "blastp 2.2.18 [Mar-02-2008]"
-bioruby&gt; result
-==&gt; ["BAB38768", "BAB38768", "BAB38769", "BAB37741"]</pre></li>
+<pre>blast_version = nil; result = []
+Bio::Blast.reports(File.new("../test/data/blast/blastp-multi.m7")) do |report|
+  blast_version = report.version
+  report.iterations.each do |itr|
+    itr.hits.each do |hit|
+      result.push hit.target_id
+    end
+  end
+end
+blast_version
+# ==&gt; "blastp 2.2.18 [Mar-02-2008]"
+result
+# ==&gt; ["BAB38768", "BAB38768", "BAB38769", "BAB37741"]</pre></li>
 <li><p>another example:</p>
 <pre>require 'bio'
 Bio::Blast.reports(ARGF) do |report| 
@@ -696,51 +706,18 @@ want to add other sites, you must write the following:</p>
 named "exec_MYSITE" to get query sequence and to pass the result to
 Bio::Blast::Report.new(or Bio::Blast::Default::Report.new):</p>
 <pre>factory = Bio::Blast.remote(program, db, option, 'MYSITE')</pre>
-<p>When you write above routines, please send to the BioRuby project and
-they may be included.</p>
+<p>When you write above routines, please send them to the BioRuby project, and they may be included in future releases.</p>
 <h2><a name="label-14" id="label-14">Generate a reference list using PubMed (Bio::PubMed)</a></h2><!-- RDLabel: "Generate a reference list using PubMed (Bio::PubMed)" -->
-<p>Below script is an example which seaches PubMed and creates a reference list.</p>
-<pre>ARGV.each do |id|
-  entry = Bio::PubMed.query(id)     # searches PubMed and get entry
-  medline = Bio::MEDLINE.new(entry) # creates Bio::MEDLINE object from entry text
-  reference = medline.reference     # converts into Bio::Reference object
-  puts reference.bibtex             # shows BibTeX formatted text
-end</pre>
-<p>We named the script pmfetch.rb.</p>
-<pre>% ./pmfetch.rb 11024183 10592278 10592173</pre>
-<p>To give some PubMed ID (PMID) in arguments, the script retrieves informations
-from NCBI, parses MEDLINE format text, converts into BibTeX format and
-shows them.</p>
-<p>A keyword search is also available.</p>
-<pre>#!/usr/bin/env ruby
-
-require 'bio'
-
-# Concatinates argument keyword list to a string
-keywords = ARGV.join(' ')
-
-# PubMed keyword search
-entries = Bio::PubMed.search(keywords)
-
-entries.each do |entry|
-  medline = Bio::MEDLINE.new(entry) # creates Bio::MEDLINE object from text
-  reference = medline.reference     # converts into Bio::Reference object
-  puts reference.bibtex             # shows BibTeX format text
-end</pre>
-<p>We named the script pmsearch.rb.</p>
-<pre>% ./pmsearch.rb genome bioinformatics</pre>
-<p>To give keywords in arguments, the script searches PubMed by given
-keywords and shows bibliography informations in a BibTex format. Other
-output formats are also avaialble like the bibitem method described
-below. Some journal formats like nature and nar can be used, but lack
-bold and italic font output.</p>
-<p>(EDITORs NOTE: do we have some simple object that can be queried for
-author, title etc.?)</p>
 <p>Nowadays using NCBI E-Utils is recommended. Use Bio::PubMed.esearch
-and Bio::PubMed.efetch instead of above methods.</p>
+and Bio::PubMed.efetch.</p>
 <pre>#!/usr/bin/env ruby
 
 require 'bio'
+
+# NCBI announces that queries without email address will return error
+# after June 2010. When you modify the script, please enter your email
+# address instead of the staff's.
+Bio::NCBI.default_email = 'staff@bioruby.org'
 
 keywords = ARGV.join(' ')
 
@@ -770,7 +747,7 @@ BibTeX format bibliography data to a file named genoinfo.bib.</p>
 % ./pmsearch.rb genome bioinformatics &gt;&gt; genoinfo.bib</pre>
 <p>The BibTeX can be used with Tex or LaTeX to form bibliography
 information with your journal article. For more information
-on BibTex see (EDITORS NOTE: insert URL). A quick example:</p>
+on using BibTex see <a href="http://www.bibtex.org/Using/">BibTex HowTo site</a>. A quick example:</p>
 <p>Save this to hoge.tex:</p>
 <pre>\documentclass{jarticle}
 \begin{document}
@@ -783,12 +760,11 @@ foo bar KEGG database~\cite{PMID:10592173} baz hoge fuga.
 % bibtex hoge # processes genoinfo.bib
 % latex hoge  # creates bibliography list
 % latex hoge  # inserts correct bibliography reference</pre>
-<p>Now, you get hoge.dvi and hoge.ps - the latter you can view any
-Postscript viewer.</p>
+<p>Now, you get hoge.dvi and hoge.ps - the latter of which can be viewed with any Postscript viewer.</p>
 <h3><a name="label-16" id="label-16">Bio::Reference#bibitem</a></h3><!-- RDLabel: "Bio::Reference#bibitem" -->
 <p>When you don't want to create a bib file, you can use
 Bio::Reference#bibitem method instead of Bio::Reference#bibtex.
-In above pmfetch.rb and pmsearch.rb scripts, change</p>
+In the above pmfetch.rb and pmsearch.rb scripts, change</p>
 <pre>puts reference.bibtex</pre>
 <p>to</p>
 <pre>puts reference.bibitem</pre>
@@ -830,12 +806,12 @@ BioRuby and other projects' members (2002).</p>
 </ul></li>
 <li>BioSQL
 <ul>
-<li>Schemas to store sequence data to relational database such as
+<li>Schemas to store sequence data to relational databases such as
     MySQL and PostgreSQL, and methods to retrieve entries from the database.</li>
 </ul></li>
 </ul>
-<p>Here we give a quick overview. Check out
-<a href="http://obda.open-bio.org/">&lt;URL:http://obda.open-bio.org/&gt;</a> for more extensive details.</p>
+<p>This tutorial only gives a quick overview of OBDA. Check out
+<a href="http://obda.open-bio.org">the OBDA site</a> for more extensive details.</p>
 <h2><a name="label-18" id="label-18">BioRegistry</a></h2><!-- RDLabel: "BioRegistry" -->
 <p>BioRegistry allows for locating retrieval methods and database
 locations through configuration files.  The priorities are</p>
@@ -850,14 +826,14 @@ when all local configulation files are not available.</p>
 <p>In the current BioRuby implementation all local configulation files
 are read. For databases with the same name settings encountered first
 are used. This means that if you don't like some settings of a
-database in system global configuration file
-(/etc/bioinformatics/seqdatabase.ini), you can easily override it by
+database in the system's global configuration file
+(/etc/bioinformatics/seqdatabase.ini), you can easily override them by
 writing settings to ~/.bioinformatics/seqdatabase.ini.</p>
 <p>The syntax of the configuration file is called a stanza format. For example</p>
 <pre>[DatabaseName]
 protocol=ProtocolName
-location=ServeName</pre>
-<p>You can write a description like above entry for every database.</p>
+location=ServerName</pre>
+<p>You can write a description like the above entry for every database.</p>
 <p>The database name is a local label for yourself, so you can name it
 freely and it can differ from the name of the actual databases. In the
 actual specification of BioRegistry where there are two or more
@@ -865,8 +841,8 @@ settings for a database of the same name, it is proposed that
 connection to the database is tried sequentially with the order
 written in configuration files. However, this has not (yet) been
 implemented in BioRuby.</p>
-<p>In addition, for some protocol, you must set additional options
-other than locations (e.g. user name of MySQL). In the BioRegistory
+<p>In addition, for some protocols, you must set additional options
+other than locations (e.g. user name for MySQL). In the BioRegistory
 specification, current available protocols are:</p>
 <ul>
 <li>index-flat</li>
@@ -879,8 +855,7 @@ specification, current available protocols are:</p>
 <p>In BioRuby, you can use index-flat, index-berkleydb, biofetch and biosql.
 Note that the BioRegistry specification sometimes gets updated and BioRuby
 does not always follow quickly.</p>
-<p>Here an example. Create a Bio::Registry object. It reads the configuration
-files:</p>
+<p>Here is an example. It creates a Bio::Registry object and reads the configuration files:</p>
 <pre>reg = Bio::Registry.new
 
 # connects to the database "genbank"
@@ -888,42 +863,39 @@ serv = reg.get_database('genbank')
 
 # gets entry of the ID
 entry = serv.get_by_id('AA2CG')</pre>
-<p>The variable "serv" is a server object corresponding to the setting
-written in configuration files. The class of the object is one of
+<p>The variable "serv" is a server object corresponding to the settings
+written in the configuration files. The class of the object is one of
 Bio::SQL, Bio::Fetch, and so on. Note that Bio::Registry#get_database("name")
 returns nil if no database is found.</p>
-<p>After that, you can use get_by_id method and some specific methods.
-Please refer to below documents.</p>
+<p>After that, you can use the get_by_id method and some specific methods.
+Please refer to the sections below for more information.</p>
 <h2><a name="label-19" id="label-19">BioFlat</a></h2><!-- RDLabel: "BioFlat" -->
 <p>BioFlat is a mechanism to create index files of flat files and to retrieve
 these entries fast. There are two index types. index-flat is a simple index
-performing binary search without using an external library of Ruby. index-berkeleydb
+performing binary search without using any external libraries of Ruby. index-berkeleydb
 uses Berkeley DB for indexing - but requires installing bdb on your computer,
-as well as the BDB Ruby package. For creating the index itself, you can use
-br_bioflat.rb command bundled with BioRuby.</p>
+as well as the BDB Ruby package. To create the index itself, you can use br_bioflat.rb command bundled with BioRuby.</p>
 <pre>% br_bioflat.rb --makeindex database_name [--format data_format] filename...</pre>
 <p>The format can be omitted because BioRuby has autodetection.  If that
-does not work you can try specifying data format as a name of BioRuby
-database class.</p>
+doesn't work, you can try specifying the data format as the name of a BioRuby database class.</p>
 <p>Search and retrieve data from database:</p>
 <pre>% br_bioflat.rb database_name identifier</pre>
-<p>For example, to create index of GenBank files gbbct*.seq and get entry
-from the database:</p>
+<p>For example, to create an index of GenBank files gbbct*.seq and get the entry from the database:</p>
 <pre>% br_bioflat.rb --makeindex my_bctdb --format GenBank gbbct*.seq
 % br_bioflat.rb my_bctdb A16STM262</pre>
 <p>If you have Berkeley DB on your system and installed the bdb extension
-module of Ruby (see http://raa.ruby-lang.org/project/bdb/), you can
+module of Ruby (see <a href="http://raa.ruby-lang.org/project/bdb/">the BDB project page</a> ), you can
 create and search indexes with Berkeley DB - a very fast alternative
 that uses little computer memory. When creating the index, use the
 "--makeindex-bdb" option instead of "--makeindex".</p>
 <pre>% br_bioflat.rb --makeindex-bdb database_name [--format data_format] filename...</pre>
 <h2><a name="label-20" id="label-20">BioFetch</a></h2><!-- RDLabel: "BioFetch" -->
 <pre>Note: this section is an advanced topic</pre>
-<p>BioFetch is a database retrieval mechanism via CGI.  CGI Parameters,
-options and error codes are standardized.  There client access via
+<p>BioFetch is a database retrieval mechanism via CGI. CGI Parameters,
+options and error codes are standardized. Client access via
 http is possible giving the database name, identifiers and format to
 retrieve entries.</p>
-<p>The BioRuby project has a BioFetch server in bioruby.org. It uses
+<p>The BioRuby project has a BioFetch server at bioruby.org. It uses
 GenomeNet's DBGET system as a backend. The source code of the
 server is in sample/ directory. Currently, there are only two
 BioFetch servers in the world: bioruby.org and EBI.</p>
@@ -941,18 +913,18 @@ entry = serv.fetch(db_name, entry_id)</pre></li>
 serv = reg.get_database('genbank')
 entry = serv.get_by_id('AA2CG')</pre></li>
 </ol>
-<p>If you want to use (4), you, obviously, have to include some settings
-in seqdatabase.ini. E.g.</p>
+<p>If you want to use (4), you have to include some settings
+in seqdatabase.ini. For example:</p>
 <pre>[genbank]
 protocol=biofetch
 location=http://bioruby.org/cgi-bin/biofetch.rb
 biodbname=genbank</pre>
 <h3><a name="label-21" id="label-21">The combination of BioFetch, Bio::KEGG::GENES and Bio::AAindex1</a></h3><!-- RDLabel: "The combination of BioFetch, Bio::KEGG::GENES and Bio::AAindex1" -->
-<p>Bioinformatics is often about glueing things together. Here we give an
-example to get the bacteriorhodopsin gene (VNG1467G) of the archaea
-Halobacterium from KEGG GENES database and to get alpha-helix index
+<p>Bioinformatics is often about gluing things together. Here is an
+example that gets the bacteriorhodopsin gene (VNG1467G) of the archaea
+Halobacterium from KEGG GENES database and gets alpha-helix index
 data (BURA740101) from the AAindex (Amino acid indices and similarity
-matrices) database, and show the helix score for each 15-aa length
+matrices) database, and shows the helix score for each 15-aa length
 overlapping window.</p>
 <pre>#!/usr/bin/env ruby
 
@@ -972,55 +944,199 @@ aaseq.window_search(win_size) do |subseq|
   puts [ position, score ].join("\t")
   position += 1
 end</pre>
-<p>The special method Bio::Fetch.query uses preset BioFetch server
-in bioruby.org. (The server internally get data from GenomeNet.
+<p>The special method Bio::Fetch.query uses the preset BioFetch server
+at bioruby.org. (The server internally gets data from GenomeNet.
 Because the KEGG/GENES database and AAindex database are not available
-from other BioFetch servers, we used bioruby.org server with
+from other BioFetch servers, we used the bioruby.org server with
 Bio::Fetch.query method.)</p>
 <h2><a name="label-22" id="label-22">BioSQL</a></h2><!-- RDLabel: "BioSQL" -->
-<p>to be written...</p>
-<h2><a name="label-23" id="label-23">The BioRuby example programs</a></h2><!-- RDLabel: "The BioRuby example programs" -->
-<p>Some sample programs are stored in ./samples/ directory. Run for example:</p>
+<p>BioSQL is a well known schema to store and retrive biological sequences using a RDBMS like PostgreSQL or MySQL: note that SQLite is not supported.
+First of all, you must install a database engine or have access to a remote one. Then create the schema and populate with the taxonomy. You can follow the <a href="http://code.open-bio.org/svnweb/index.cgi/biosql/view/biosql-schema/trunk/INSTALL">Official Guide</a> to accomplish these steps.
+Next step is to install these gems:</p>
+<ul>
+<li>ActiveRecord</li>
+<li>CompositePrimaryKeys (Rails doesn't handle by default composite primary keys)</li>
+<li>The layer to comunicate with you preferred RDBMS (postgresql, mysql, jdbcmysql in case you are running JRuby )</li>
+</ul>
+<p>You can find ActiveRecord's models in /bioruby/lib/bio/io/biosql</p>
+<p>When you have your database up and running, you can connect to it like this:</p>
+<pre>#!/usr/bin/env ruby
+
+require 'bio'
+
+connection = Bio::SQL.establish_connection({'development'=&gt;{'hostname'=&gt;"YourHostname",
+'database'=&gt;"CoolBioSeqDB",
+'adapter'=&gt;"jdbcmysql",
+'username'=&gt;"YourUser",
+'password'=&gt;"YouPassword"
+      }
+  },
+'development')
+
+#The first parameter is the hash contaning the description of the configuration; similar to database.yml in Rails applications, you can declare different environment. 
+#The second parameter is the environment to use: 'development', 'test', or 'production'.
+
+#To store a sequence into the database you simply need a biosequence object.
+biosql_database = Bio::SQL::Biodatabase.find(:first)
+ff = Bio::GenBank.open("gbvrl1.seq")
+
+ff.each_entry do |gb|
+  Bio::SQL::Sequence.new(:biosequence=&gt;gb.to_biosequence, :biodatabase=&gt;biosql_database
+end
+
+#You can list all the entries into every database 
+Bio::SQL.list_entries
+
+#list databases:
+Bio::SQL.list_databases
+
+#retriving a generic accession
+bioseq = Bio::SQL.fetch_accession("YouAccession")
+
+#If you use biosequence objects, you will find all its method mapped to BioSQL sequences. 
+#But you can also access to the models directly:
+
+#get the raw sequence associated with your accession
+bioseq.entry.biosequence 
+
+#get the length of your sequence; this is the explicit form of bioseq.length
+bioseq.entry.biosequence.length
+
+#convert the sequence into GenBank format
+bioseq.to_biosequence.output(:genbank)</pre>
+<p>BioSQL's <a href="http://www.biosql.org/wiki/Schema_Overview">schema</a> is not very intuitive for beginners, so spend some time on understanding it. In the end if you know a little bit of Ruby on Rails, everything will go smoothly. You can find information on Annotation <a href="http://www.biosql.org/wiki/Annotation_Mapping">here</a>.
+ToDo: add exemaples from George. I remember he did some cool post on BioSQL and Rails.</p>
+<h1><a name="label-23" id="label-23">PhyloXML</a></h1><!-- RDLabel: "PhyloXML" -->
+<p>PhyloXML is an XML language for saving, analyzing and exchanging data of 
+annotated phylogenetic trees. PhyloXML's parser in BioRuby is implemented in 
+Bio::PhyloXML::Parser, and its writer in Bio::PhyloXML::Writer. 
+More information can be found at <a href="http://www.phyloxml.org">www.phyloxml.org</a>.</p>
+<h2><a name="label-24" id="label-24">Requirements</a></h2><!-- RDLabel: "Requirements" -->
+<p>In addition to BioRuby, you need the libxml Ruby bindings. To install, execute:</p>
+<pre>% gem install -r libxml-ruby</pre>
+<p>For more information see the <a href="http://libxml.rubyforge.org/install.xml">libxml installer page</a></p>
+<h2><a name="label-25" id="label-25">Parsing a file</a></h2><!-- RDLabel: "Parsing a file" -->
+<pre>require 'bio'
+
+# Create new phyloxml parser
+phyloxml = Bio::PhyloXML::Parser.open('example.xml')
+
+# Print the names of all trees in the file
+phyloxml.each do |tree|
+  puts tree.name
+end</pre>
+<p>If there are several trees in the file, you can access the one you wish by specifying its index:</p>
+<pre>tree = phyloxml[3]</pre>
+<p>You can use all Bio::Tree methods on the tree, since PhyloXML::Tree inherits from Bio::Tree. For example, </p>
+<pre>tree.leaves.each do |node|
+  puts node.name
+end</pre>
+<p>PhyloXML files can hold additional information besides phylogenies at the end of the file. This info can be accessed through the 'other' array of the parser object.</p>
+<pre>phyloxml = Bio::PhyloXML::Parser.open('example.xml')
+while tree = phyloxml.next_tree
+  # do stuff with trees
+end 
+
+puts phyloxml.other</pre>
+<h2><a name="label-26" id="label-26">Writing a file</a></h2><!-- RDLabel: "Writing a file" -->
+<pre># Create new phyloxml writer
+writer = Bio::PhyloXML::Writer.new('tree.xml')
+
+# Write tree to the file tree.xml
+writer.write(tree1) 
+
+# Add another tree to the file
+writer.write(tree2)</pre>
+<h2><a name="label-27" id="label-27">Retrieving data</a></h2><!-- RDLabel: "Retrieving data" -->
+<p>Here is an example of how to retrieve the scientific name of the clades included in each tree.</p>
+<pre>require 'bio'
+
+phyloxml = Bio::PhyloXML::Parser.open('ncbi_taxonomy_mollusca.xml')
+phyloxml.each do |tree|
+  tree.each_node do |node|
+    print "Scientific name: ", node.taxonomies[0].scientific_name, "\n"
+  end
+end</pre>
+<h2><a name="label-28" id="label-28">Retrieving 'other' data</a></h2><!-- RDLabel: "Retrieving 'other' data" -->
+<pre>require 'bio'
+
+phyloxml = Bio::PhyloXML::Parser.open('phyloxml_examples.xml')
+while tree = phyloxml.next_tree
+ #do something with the trees
+end
+
+p phyloxml.other
+puts "\n"
+#=&gt; output is an object representation
+
+#Print in a readable way
+puts phyloxml.other[0].to_xml, "\n"
+#=&gt;:
+#
+#&lt;align:alignment xmlns:align="http://example.org/align"&gt;
+#  &lt;seq name="A"&gt;acgtcgcggcccgtggaagtcctctcct&lt;/seq&gt;
+#  &lt;seq name="B"&gt;aggtcgcggcctgtggaagtcctctcct&lt;/seq&gt;
+#  &lt;seq name="C"&gt;taaatcgc--cccgtgg-agtccc-cct&lt;/seq&gt;
+#&lt;/align:alignment&gt;
+
+#Once we know whats there, lets output just sequences
+phyloxml.other[0].children.each do |node|
+ puts node.value
+end
+#=&gt;
+#
+#acgtcgcggcccgtggaagtcctctcct
+#aggtcgcggcctgtggaagtcctctcct
+#taaatcgc--cccgtgg-agtccc-cct</pre>
+<h2><a name="label-29" id="label-29">The BioRuby example programs</a></h2><!-- RDLabel: "The BioRuby example programs" -->
+<p>Some sample programs are stored in ./samples/ directory. For example, the n2aa.rb program (transforms a nucleic acid sequence into an amino acid sequence) can be run using:</p>
 <pre>./sample/na2aa.rb test/data/fasta/example1.txt </pre>
-<h2><a name="label-24" id="label-24">Unit testing and doctests</a></h2><!-- RDLabel: "Unit testing and doctests" -->
+<h2><a name="label-30" id="label-30">Unit testing and doctests</a></h2><!-- RDLabel: "Unit testing and doctests" -->
 <p>BioRuby comes with an extensive testing framework with over 1300 tests and 2700
 assertions. To run the unit tests:</p>
 <pre>cd test
 ruby runner.rb</pre>
 <p>We have also started with doctest for Ruby. We are porting the examples
 in this tutorial to doctest - more info upcoming.</p>
-<h2><a name="label-25" id="label-25">Further reading</a></h2><!-- RDLabel: "Further reading" -->
+<h2><a name="label-31" id="label-31">Further reading</a></h2><!-- RDLabel: "Further reading" -->
 <p>See the BioRuby in anger Wiki.  A lot of BioRuby's documentation exists in the
 source code and unit tests. To really dive in you will need the latest source
-code tree. The embedded rdoc documentation can be viewed online at
+code tree. The embedded rdoc documentation for the BioRuby source code can be viewed online at
 <a href="http://bioruby.org/rdoc/">&lt;URL:http://bioruby.org/rdoc/&gt;</a>.</p>
-<h2><a name="label-26" id="label-26">BioRuby Shell</a></h2><!-- RDLabel: "BioRuby Shell" -->
-<p>The BioRuby shell implementation you find in ./lib/bio/shell. It is very interesting
+<h2><a name="label-32" id="label-32">BioRuby Shell</a></h2><!-- RDLabel: "BioRuby Shell" -->
+<p>The BioRuby shell implementation is located in ./lib/bio/shell. It is very interesting
 as it uses IRB (the Ruby intepreter) which is a powerful environment described in
-<a href="http://ruby-doc.org/docs/ProgrammingRuby/html/irb.html">Programming Ruby's irb chapter</a>. IRB commands can directly be typed in the shell, e.g.</p>
+<a href="http://ruby-doc.org/docs/ProgrammingRuby/html/irb.html">Programming Ruby's IRB chapter</a>. IRB commands can be typed directly into the shell, e.g.</p>
 <pre>bioruby!&gt; IRB.conf[:PROMPT_MODE]
 ==!&gt; :PROMPT_C</pre>
-<p>optionally you also may want to install the optional Ruby readline support -
+<p>Additionally, you also may want to install the optional Ruby readline support -
 with Debian libreadline-ruby. To edit a previous line you may have to press
-line down (arrow down) first.</p>
-<h1><a name="label-27" id="label-27">Helpful tools</a></h1><!-- RDLabel: "Helpful tools" -->
+line down (down arrow) first.</p>
+<h1><a name="label-33" id="label-33">Helpful tools</a></h1><!-- RDLabel: "Helpful tools" -->
 <p>Apart from rdoc you may also want to use rtags - which allows jumping around
 source code by clicking on class and method names. </p>
 <pre>cd bioruby/lib
 rtags -R --vi</pre>
-<p>For a tutorial see <a href="http://rtags.rubyforge.org/">&lt;URL:http://rtags.rubyforge.org/&gt;</a></p>
-<h1><a name="label-28" id="label-28">APPENDIX</a></h1><!-- RDLabel: "APPENDIX" -->
-<h2><a name="label-29" id="label-29">KEGG API</a></h2><!-- RDLabel: "KEGG API" -->
+<p>For a tutorial see <a href="http://rtags.rubyforge.org/">here</a></p>
+<h1><a name="label-34" id="label-34">APPENDIX</a></h1><!-- RDLabel: "APPENDIX" -->
+<h2><a name="label-35" id="label-35">Biogem: Additional BioRuby plugins</a></h2><!-- RDLabel: "Biogem: Additional BioRuby plugins" -->
+<p>Biogem is one of the exciting developments for Ruby in bioinformatics! Biogems
+add new functionality next to the BioRuby core project (BioRuby is a biogem itself). A biogem is simply installed with </p>
+<pre>gem install bio                 # The core BioRuby gem
+gem install bio-core            # BioRuby + stable pure Ruby biogems
+gem install bio-core-ext        # bio-core + stable Ruby extensions</pre>
+<p>Information on these biogems, and the many others available, see <a href="http://biogems.info/">Biogems.info</a> or <a href="http://gems.bioruby.org/">gems.bioruby.org</a>.</p>
+<h2><a name="label-36" id="label-36">KEGG API</a></h2><!-- RDLabel: "KEGG API" -->
 <p>Please refer to KEGG_API.rd.ja (English version: <a href="http://www.genome.jp/kegg/soap/doc/keggapi_manual.html">&lt;URL:http://www.genome.jp/kegg/soap/doc/keggapi_manual.html&gt;</a> ) and</p>
 <ul>
 <li><a href="http://www.genome.jp/kegg/soap/">&lt;URL:http://www.genome.jp/kegg/soap/&gt;</a></li>
 </ul>
-<h2><a name="label-30" id="label-30">Ruby Ensembl API</a></h2><!-- RDLabel: "Ruby Ensembl API" -->
-<p>Ruby Ensembl API is a ruby API to the Ensembl database. It is NOT currently
+<h2><a name="label-37" id="label-37">Ruby Ensembl API</a></h2><!-- RDLabel: "Ruby Ensembl API" -->
+<p>The Ruby Ensembl API is a Ruby API to the Ensembl database. It is NOT currently
 included in the BioRuby archives. To install it, see
-<a href="http://wiki.github.com/jandot/ruby-ensembl-api">&lt;URL:http://wiki.github.com/jandot/ruby-ensembl-api&gt;</a>
+<a href="http://wiki.github.com/jandot/ruby-ensembl-api">the Ruby-Ensembl Github</a>
 for more information.</p>
-<h3><a name="label-31" id="label-31">Gene Ontology (GO) through the Ruby Ensembl API</a></h3><!-- RDLabel: "Gene Ontology (GO) through the Ruby Ensembl API" -->
+<h3><a name="label-38" id="label-38">Gene Ontology (GO) through the Ruby Ensembl API</a></h3><!-- RDLabel: "Gene Ontology (GO) through the Ruby Ensembl API" -->
 <p>Gene Ontologies can be fetched through the Ruby Ensembl API package:</p>
 <pre>require 'ensembl'
 Ensembl::Core::DBConnection.connect('drosophila_melanogaster')
@@ -1028,7 +1144,7 @@ infile = IO.readlines(ARGV.shift) # reading your comma-separated accession mappi
 infile.each do |line|
   accs = line.split(",")          # Split the comma-sep.entries into an array
   drosphila_acc = accs.shift      # the first entry is the Drosophila acc
-  mosq_acc = accs.shift           # the second entry is you Mosq. acc
+  mosq_acc = accs.shift           # the second entry is your Mosq. acc
   gene = Ensembl::Core::Gene.find_by_stable_id(drosophila_acc)
   print "#{mosq_acc}"
   gene.go_terms.each do |go|
@@ -1037,28 +1153,32 @@ infile.each do |line|
 end</pre>
 <p>Prints each mosq. accession/uniq identifier and the GO terms from the Drosphila
 homologues.</p>
-<h2><a name="label-32" id="label-32">Comparing BioProjects</a></h2><!-- RDLabel: "Comparing BioProjects" -->
-<p>For a quick functional comparison of BioRuby, BioPerl, BioPython and Bioconductor (R) see <a href="http://sciruby.codeforpeople.com/sr.cgi/BioProjects">&lt;URL:http://sciruby.codeforpeople.com/sr.cgi/BioProjects&gt;</a></p>
-<h2><a name="label-33" id="label-33">Using BioRuby with R</a></h2><!-- RDLabel: "Using BioRuby with R" -->
-<p>Using Ruby with R Pjotr wrote a section on SciRuby. See <a href="http://sciruby.codeforpeople.com/sr.cgi/RubyWithRlang">&lt;URL:http://sciruby.codeforpeople.com/sr.cgi/RubyWithRlang&gt;</a></p>
-<h2><a name="label-34" id="label-34">Using BioPerl or BioPython from Ruby</a></h2><!-- RDLabel: "Using BioPerl or BioPython from Ruby" -->
-<p>At the moment there is no easy way of accessing BioPerl from Ruby. The best way, perhaps, is to create a Perl server that gets accessed through XML/RPC or SOAP.</p>
-<h2><a name="label-35" id="label-35">Installing required external library</a></h2><!-- RDLabel: "Installing required external library" -->
-<p>At this point for using BioRuby no additional libraries are needed.
-This may change, so keep an eye on the Bioruby website. Also when
+<h2><a name="label-39" id="label-39">Using BioPerl or BioPython from Ruby</a></h2><!-- RDLabel: "Using BioPerl or BioPython from Ruby" -->
+<p>A possible route is to opt for JRuby and Jython on the JAVA virtual machine (JVM).</p>
+<p>At the moment there is no easy way of accessing BioPerl or BioPython directly from Ruby. A possibility is to create a Perl or Python server that gets accessed through XML/RPC or SOAP.</p>
+<h2><a name="label-40" id="label-40">Installing required external libraries</a></h2><!-- RDLabel: "Installing required external libraries" -->
+<p>At this point for using BioRuby no additional libraries are needed, except if
+you are using the Bio::PhyloXML module; then you have to install libxml-ruby.</p>
+<p>This may change, so keep an eye on the Bioruby website. Also when
 a package is missing BioRuby should show an informative message.</p>
 <p>At this point installing third party Ruby packages can be a bit
 painful, as the gem standard for packages evolved late and some still
 force you to copy things by hand. Therefore read the README's
 carefully that come with each package.</p>
-<h2><a name="label-36" id="label-36">Trouble shooting</a></h2><!-- RDLabel: "Trouble shooting" -->
+<h3><a name="label-41" id="label-41">Installing libxml-ruby</a></h3><!-- RDLabel: "Installing libxml-ruby" -->
+<p>The simplest way is to use the RubyGems packaging system:</p>
+<pre>gem install -r libxml-ruby</pre>
+<p>If you get `require': no such file to load - mkmf (LoadError) error then do</p>
+<pre>sudo apt-get install ruby-dev</pre>
+<p>If you have other problems with installation, then see <a href="http://libxml.rubyforge.org/install.xml">&lt;URL:http://libxml.rubyforge.org/install.xml&gt;</a>.</p>
+<h2><a name="label-42" id="label-42">Trouble shooting</a></h2><!-- RDLabel: "Trouble shooting" -->
 <ul>
 <li>Error: in `require': no such file to load -- bio (LoadError)</li>
 </ul>
-<p>Ruby fails to find the BioRuby libraries - add it to the RUBYLIB path, or pass
+<p>Ruby is failing to find the BioRuby libraries - add it to the RUBYLIB path, or pass
 it to the interpeter. For example:</p>
 <pre>ruby -I$BIORUBYPATH/lib yourprogram.rb</pre>
-<h2><a name="label-37" id="label-37">Modifying this page</a></h2><!-- RDLabel: "Modifying this page" -->
+<h2><a name="label-43" id="label-43">Modifying this page</a></h2><!-- RDLabel: "Modifying this page" -->
 <p>IMPORTANT NOTICE: This page is maintained in the BioRuby source code 
 repository. Please edit the file there otherwise changes may get
 lost. See <!-- Reference, RDLabel "BioRuby Developer Information" doesn't exist --><em class="label-not-found">BioRuby Developer Information</em><!-- Reference end --> for repository and mailing list

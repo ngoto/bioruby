@@ -82,6 +82,7 @@ module Bio
   ## below are described in bio/db/genbank/ddbj.rb
   #class DDBJ
   #  autoload :XML,          'bio/io/ddbjxml'
+  #  autoload :REST,         'bio/io/ddbjrest'
   #end
 
   ## EMBL/TrEMBL/Swiss-Prot/SPTR
@@ -107,6 +108,8 @@ module Bio
     autoload :EXPRESSION,   'bio/db/kegg/expression'
     autoload :ORTHOLOGY,    'bio/db/kegg/orthology'
     autoload :KGML,         'bio/db/kegg/kgml'
+    autoload :PATHWAY,      'bio/db/kegg/pathway'
+    autoload :MODULE,       'bio/db/kegg/module'
     autoload :Taxonomy,     'bio/db/kegg/taxonomy'
   end
 
@@ -192,10 +195,12 @@ module Bio
     autoload :SOAP,         'bio/io/ebisoap'
   end
 
-  class NCBI
-    autoload :SOAP,       'bio/io/ncbisoap'
-    autoload :REST,       'bio/io/ncbirest'
-  end
+  autoload :NCBI,         'bio/io/ncbirest'
+  ## below are described in bio/io/ncbirest.rb
+  #class NCBI
+  #  autoload :SOAP,       'bio/io/ncbisoap'
+  #  autoload :REST,       'bio/io/ncbirest'
+  #end
 
   autoload :TogoWS,       'bio/io/togows'
 

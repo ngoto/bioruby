@@ -1,16 +1,35 @@
 #
 # = Rakefile - helper of developement and packaging
 #
-# Copyright::   Copyright (C) 2009 Naohisa Goto <ng@bioruby.org>
+# Copyright::   Copyright (C) 2009, 2012 Naohisa Goto <ng@bioruby.org>
 # License::     The Ruby License
 #
 
 require 'rubygems'
 require 'erb'
+require 'pathname'
+require 'tmpdir'
 require 'rake/testtask'
 require 'rake/packagetask'
-require 'rake/gempackagetask'
-require 'rake/rdoctask'
+
+begin
+  require 'rubygems/package_task'
+rescue LoadError
+  # old RubyGems/Rake version
+  require 'rake/gempackagetask'
+end
+
+begin
+  require 'rdoc/task'
+rescue LoadError
+  # old RDoc/Rake version
+  require 'rake/rdoctask'
+end
+
+# workaround for new module name
+unless defined? Rake::GemPackageTask then
+  Rake::GemPackageTask = Gem::PackageTask
+end
 
 load "./lib/bio/version.rb"
 BIO_VERSION_RB_LOADED = true
@@ -25,10 +44,20 @@ extraversion = nil if extraversion.to_s.empty?
 BIORUBY_VERSION = version
 BIORUBY_EXTRA_VERSION = extraversion
 
-task :default => "test"
+task :default => "see-env"
 
 Rake::TestTask.new do |t|
   t.test_files = FileList["test/{unit,functional}/**/test_*.rb"]
+end
+
+Rake::TestTask.new do |t|
+  t.name = :"test-all"
+  t.test_files = FileList["test/{unit,functional,network}/**/test_*.rb"]
+end
+
+Rake::TestTask.new do |t|
+  t.name = :"test-network"
+  t.test_files = FileList["test/network/**/test_*.rb"]
 end
 
 # files not included in gem but included in tar archive
@@ -38,7 +67,9 @@ GEM_SPEC_FILE = "bioruby.gemspec"
 GEM_SPEC_TEMPLATE_FILE = "bioruby.gemspec.erb"
 
 # gets gem spec string
-gem_spec_string = ERB.new(File.read(GEM_SPEC_TEMPLATE_FILE)).result
+gem_spec_string = File.open(GEM_SPEC_TEMPLATE_FILE, "rb") do |f|
+                    ERB.new(f.read).result
+                  end
 
 # gets gem spec object
 spec = eval(gem_spec_string)
@@ -68,7 +99,7 @@ desc "Update #{GEM_SPEC_FILE}"
 file GEM_SPEC_FILE => [ GEM_SPEC_TEMPLATE_FILE, 'Rakefile',
                         'lib/bio/version.rb' ] do |t|
   puts "creates #{GEM_SPEC_FILE}"
-  File.open(t.name, 'w') do |w|
+  File.open(t.name, 'wb') do |w|
     w.print gem_spec_string
   end
 end
@@ -77,12 +108,20 @@ task :package => [ GEM_SPEC_FILE ] do
   Rake::Task[:regemspec].invoke if flag_update_gemspec
 end
 
+pkg_dir = "pkg"
+tar_version = (BIORUBY_VERSION || spec.version) + BIORUBY_EXTRA_VERSION.to_s
+tar_basename = "bioruby-#{tar_version}"
+tar_filename = "#{tar_basename}.tar.gz"
+tar_pkg_filepath = File.join(pkg_dir, tar_filename)
+gem_filename = spec.full_name + ".gem"
+gem_pkg_filepath = File.join(pkg_dir, gem_filename)
+
 Rake::PackageTask.new("bioruby") do |pkg|
   #pkg.package_dir = "./pkg"
   pkg.need_tar_gz = true
   pkg.package_files.import(spec.files)
   pkg.package_files.include(*tar_additional_files)
-  pkg.version = (BIORUBY_VERSION || spec.version) + BIORUBY_EXTRA_VERSION.to_s
+  pkg.version = tar_version
 end
 
 Rake::GemPackageTask.new(spec) do |pkg|
@@ -141,3 +180,106 @@ task :retutorial2html do
   end
 end
 
+# ChangeLog
+desc "Force update ChangeLog using git log"
+task :rechangelog do
+  # The tag name in the command line should be changed
+  # after releasing new version, updating ChangeLog,
+  # and doing "git mv ChangeLog doc/ChangeLog-X.X.X".
+  sh "git log --stat --summary 1.4.2..HEAD > ChangeLog"
+end
+
+# define mktmpdir 
+if Dir.respond_to?(:mktmpdir) then
+  def self.mktmpdir(*arg, &block)
+    Dir.mktmpdir(*arg, &block)
+  end
+else
+  load "lib/bio/command.rb"
+  def mktmpdir(*arg, &block)
+    Bio::Command.mktmpdir(*arg, &block)
+  end
+end
+    
+desc "task specified with BIORUBY_RAKE_DEFAULT_TASK (default \"test\")"
+task :"see-env" do
+  t = ENV["BIORUBY_RAKE_DEFAULT_TASK"]
+  if t then
+    Rake::Task[t].invoke
+  else
+    Rake::Task[:test].invoke
+  end
+end
+
+desc "DANGER: build tar and install (GNU tar needed)"
+task :"tar-install" => [ :regemspec, :package ] do
+  begin
+    pwd = Dir.pwd
+    mktmpdir("bioruby") do |dirname|
+      safe_ln(tar_pkg_filepath, dirname)
+      Dir.chdir(dirname)
+      sh("tar zxvf #{tar_filename}")
+      Dir.chdir(tar_basename)
+      ruby("setup.rb")
+    end
+  ensure
+    Dir.chdir(pwd)
+  end
+end
+
+desc "test installed bioruby on system"
+task :"installed-test" do
+  data_path = File.join(Dir.pwd, "test/data")
+  test_runner = File.join(Dir.pwd, "test/runner.rb")
+  data_path = Pathname.new(data_path).cleanpath.to_s
+  test_runner = Pathname.new(test_runner).cleanpath.to_s
+
+  ENV["BIORUBY_TEST_DATA"] = data_path
+  ENV["BIORUBY_TEST_LIB"] = ""
+  ENV["BIORUBY_TEST_GEM"] = nil
+
+  mktmpdir("bioruby") do |dirname|
+    Dir.chdir(dirname)
+    ruby("-rbio", test_runner)
+  end
+end
+
+desc "DANGER: build tar, install and run test"
+task :"tar-integration-test" => [ :"tar-install",
+                                  :"installed-test" ]
+
+desc "DANGER: build gem, install and run test (with --no-ri --no-rdoc)"
+task :"gem-integration-test" => [ :"gem-install-nodoc",
+                                  :"gem-test" ]
+
+desc "test installed bioruby gem version #{spec.version.to_s}"
+task :"gem-test" do
+  data_path = File.join(Dir.pwd, "test/data")
+  test_runner = File.join(Dir.pwd, "test/runner.rb")
+  data_path = Pathname.new(data_path).cleanpath.to_s
+  test_runner = Pathname.new(test_runner).cleanpath.to_s
+
+  ENV["BIORUBY_TEST_DATA"] = data_path
+  ENV["BIORUBY_TEST_LIB"] = nil
+  ENV["BIORUBY_TEST_GEM"] = spec.version.to_s
+
+  begin
+    pwd = Dir.pwd
+    mktmpdir("bioruby") do |dirname|
+      Dir.chdir(dirname)
+      ruby(test_runner)
+    end
+  ensure
+    Dir.chdir(pwd)
+  end
+end
+
+desc "build gem and install"
+task :"gem-install" => [ :regemspec, :gem ] do
+  sh("gem install --local #{gem_pkg_filepath}")
+end
+
+desc "DANGER: build gem and install with --no-ri --no-rdoc"
+task :"gem-install-nodoc" => [ :regemspec, :gem ] do
+  sh("gem install --local --no-ri --no-rdoc #{gem_pkg_filepath}")
+end

@@ -8,7 +8,7 @@
 #
 
 require 'bio/appl/blast/remote'
-require 'bio/io/ddbjxml'
+require 'bio/io/ddbjrest'
 
 module Bio::Blast::Remote
 
@@ -37,32 +37,43 @@ module Bio::Blast::Remote
         if defined? @parse_databases
           return nil if @parse_databases
         end
-        drv = Bio::DDBJ::XML::Blast.new
+        drv = Bio::DDBJ::REST::Blast.new
         str = drv.getSupportDatabaseList
 
         databases = {}
         dbdescs = {}
-        key = 'blastn'
+        keys = [ 'blastn', 'blastp' ]
+        keys.each do |key|
+          databases[key] ||= []
+          dbdescs[key] ||= {}
+        end
         prefix = ''
-        databases[key] ||= []
-        dbdescs[key] ||= {}
+        prefix_count = 0
         str.each_line do |line|
           a = line.strip.split(/\s*\-\s*/, 2)
           case a.size
           when 1
             prefix = a[0].to_s.strip
             prefix += ': ' unless prefix.empty?
-            key = 'blastn'
+            prefix_count = 0
             next #each_line
           when 0
-            prefix = ''
-            key = 'blastp'
-            databases[key] ||= []
-            dbdescs[key] ||= {}
+            prefix = '' if prefix_count > 0
             next #each_line
           end
           name = a[0].to_s.strip.freeze
-          desc = (prefix + a[1].to_s.strip).freeze
+          desc = a[1].to_s.strip
+          key = case desc
+                when /\(NT\)\s*$/
+                  'blastn'
+                when /\(AA\)\s*$/
+                  'blastp'
+                else
+                  warn "DDBJ BLAST: could not determine the database is NT or AA: #{line.chomp}" if $VERBOSE
+                  next #each_line
+                end
+          desc = (prefix + desc).freeze
+          prefix_count += 1
           databases[key].push name
           dbdescs[key][name] = desc
         end
@@ -96,11 +107,9 @@ module Bio::Blast::Remote
       options = make_command_line_options
       opt = Bio::Blast::NCBIOptions.new(options)
 
-      # SOAP objects are cached
-      @ddbj_remote_blast ||= Bio::DDBJ::XML::Blast.new
-      #@ddbj_request_manager ||= Bio::DDBJ::XML::RequestManager.new
-      # always use REST version to prevent warning messages
-      @ddbj_request_manager ||= Bio::DDBJ::XML::RequestManager::REST.new
+      # REST objects are cached
+      @ddbj_remote_blast ||= Bio::DDBJ::REST::Blast.new
+      @ddbj_request_manager ||= Bio::DDBJ::REST::RequestManager.new
 
       program = opt.delete('-p')
       db = opt.delete('-d')
@@ -110,24 +119,7 @@ module Bio::Blast::Remote
       qid = @ddbj_remote_blast.searchParamAsync(program, db, query, optstr)
       @output = qid
 
-      sleeptime = 2
-      flag = true
-      while flag
-        if $VERBOSE then
-          $stderr.puts "DDBJ BLAST: ID: #{qid} -- waitng #{sleeptime} sec."
-        end
-        sleep(sleeptime)
-
-        result = @ddbj_request_manager.getAsyncResult(qid)
-        case result.to_s
-        when /The search and analysis service by WWW is very busy now/
-          raise result.to_s.strip + '(Alternatively, wrong options may be given.)'
-        when /Your job has not completed yet/
-          sleeptime = 5
-        else
-          flag = false
-        end
-      end while flag
+      result = @ddbj_request_manager.wait_getAsyncResult(qid)
 
       @output = result
       return @output

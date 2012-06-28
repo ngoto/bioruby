@@ -4,10 +4,6 @@
 # Copyright::  Copyright (C) 2008 Naohisa Goto <ng@bioruby.org>
 # License::    The Ruby License
 #
-# $Id: format_genbank.rb,v 1.1.2.5 2008/06/17 15:59:24 ngoto Exp $
-#
-
-require 'bio/sequence/format'
 
 module Bio::Sequence::Format::NucFormatter
 
@@ -125,7 +121,7 @@ __END_OF_REFERENCE__
 
     # formats date
     def date_format_genbank
-      date_modified || date_created || null_date
+      format_date(date_modified || date_created || null_date)
     end
 
     # moleculue type

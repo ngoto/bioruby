@@ -7,7 +7,6 @@
 #
 
 require 'bio/db/fastq'
-require 'bio/sequence/format'
 
 module Bio::Sequence::Format::Formatter
 
@@ -26,7 +25,7 @@ module Bio::Sequence::Format::Formatter
     # *Arguments*:
     # * _sequence_: Bio::Sequence object
     # * (optional) :repeat_title => (true or false) if true, repeating title in the "+" line; if not true, "+" only (default false)
-    # * (optional) :width => _width_: (Fixnum) width to wrap sequence and quality lines;  nil to prevent wrapping (default 70)
+    # * (optional) :width => _width_: (Fixnum) width to wrap sequence and quality lines;  nil to prevent wrapping (default nil)
     # * (optional) :title => _title_: (String) completely replaces title line with the _title_ (default nil)
     # * (optional) :default_score => _score_: (Integer) default score for bases that have no valid quality scores or error probabilities; false or nil means the lowest score, true means the highest score (default nil)
     def initialize; end if false # dummy for RDoc
@@ -43,7 +42,7 @@ module Bio::Sequence::Format::Formatter
     # *Returns*:: String object
     def output
       title = @options[:title]
-      width = @options.has_key?(:width) ? @options[:width] : 70
+      width = @options.has_key?(:width) ? @options[:width] : nil
       seq = @sequence.seq.to_s
       entry_id = @sequence.entry_id || 
         "#{@sequence.primary_accession}.#{@sequence.sequence_version}"

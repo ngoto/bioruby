@@ -69,11 +69,11 @@ module Bio::Blast::Remote
   # 
   # * http://www.ncbi.nlm.nih.gov/blast/
   # * http://www.ncbi.nlm.nih.gov/Education/BLASTinfo/similarity.html
-  # * http://blast.genome.jp/ideas/ideas.html#blast
+  # * http://www.genome.jp/tools/blast/
   #
   module GenomeNet
 
-    Host = "blast.genome.jp".freeze
+    Host = "www.genome.jp".freeze
 
     # Creates a remote BLAST factory using GenomeNet.
     # Returns Bio::Blast object.
@@ -100,7 +100,7 @@ module Bio::Blast::Remote
         key = nil
         host = Bio::Blast::Remote::Genomenet::Host
         http = Bio::Command.new_http(host)
-        result = http.get('/')
+        result = http.get('/tools/blast/')
         #p result.body
         result.body.each_line do |line|
           case line
@@ -158,7 +158,8 @@ module Bio::Blast::Remote
       host = Host
       #host = "blast.genome.jp"
       #path = "/sit-bin/nph-blast"
-      path = "/sit-bin/blast" #2005.08.12
+      #path = "/sit-bin/blast" #2005.08.12
+      path = "/tools-bin/blast" #2012.01.12
 
       options = make_command_line_options
       opt = Bio::Blast::NCBIOptions.new(options)
@@ -166,11 +167,20 @@ module Bio::Blast::Remote
       program = opt.delete('-p')
       db = opt.delete('-d')
 
+      # When database name starts with mine-aa or mine-nt,
+      # space-separated list of KEGG organism codes can be given.
+      # For example, "mine-aa eco bsu hsa".
+      if /\A(mine-(aa|nt))\s+/ =~ db.to_s then
+        db = $1
+        myspecies = {}
+        myspecies["myspecies-#{$2}"] = $'
+      end
+
       matrix = opt.delete('-M') || 'blosum62'
       filter = opt.delete('-F') || 'T'
 
-      opt_V = opt.delete('-V') || 500 # default value for GenomeNet
-      opt_B = opt.delete('-B') || 250 # default value for GenomeNet
+      opt_v = opt.delete('-v') || 500 # default value for GenomeNet
+      opt_b = opt.delete('-b') || 250 # default value for GenomeNet
 
       # format, not for form parameters, but included in option string
       opt_m = opt.get('-m') || '7' # default of BioRuby GenomeNet factory
@@ -186,10 +196,12 @@ module Bio::Blast::Remote
         'other_param'    => optstr,
         'matrix'         => matrix,
         'filter'         => filter,
-        'V_value'        => opt_V, 
-        'B_value'        => opt_B, 
+        'V_value'        => opt_v, 
+        'B_value'        => opt_b, 
         'alignment_view' => 0,
       }
+
+      form.merge!(myspecies) if myspecies
 
       form.keys.each do |k|
         form.delete(k) unless form[k]
@@ -227,10 +239,9 @@ module Bio::Blast::Remote
           end
         end
 
-        # workaround 2005.08.12
-        if /\<A +HREF=\"(http\:\/\/blast\.genome\.jp(\/tmp\/[^\"]+))\"\>Show all result\<\/A\>/i =~ @output.to_s then
-          result = http.get($2)
-          @output = result.body
+        # workaround 2005.08.12 + 2011.01.27
+        if /\<A +HREF=\"(http\:\/\/[\-\.a-z0-9]+\.genome\.jp(\/tmp\/[^\"]+))\"\>Show all result\<\/A\>/i =~ @output.to_s then
+          @output = Bio::Command.read_uri($1)
           txt = @output.to_s.split(/\<pre\>/)[1]
           raise 'cannot understand response' unless txt
           txt.sub!(/\<\/pre\>.*\z/m, '')

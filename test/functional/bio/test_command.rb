@@ -19,23 +19,26 @@ require 'tempfile'
 require 'bio/command'
 
 module Bio
-  class FuncTestCommandCall < Test::Unit::TestCase
+  module FuncTestCommandCallCommon
 
-    def setup
-      case RUBY_PLATFORM
-      when /mswin32|bccwin32/
-        cmd = File.expand_path(File.join(BioRubyTestDataPath, 'command', 'echoarg2.bat'))
-        @arg = [ cmd, 'test "argument 1"', '"test" argument 2', 'arg3' ]
-        @expected = '"""test"" argument 2"'
+    def windows_platform?
+      Bio::Command.module_eval { windows_platform? }
+    end
+    module_function :windows_platform?
+
+    def setup_cmd
+      if windows_platform? then
+        [ File.expand_path(File.join(BioRubyTestDataPath, 'command', 'echoarg2.bat')) ]
       else
-        cmd = "/bin/echo"
-        @arg = [ cmd, "test (echo) command" ]
-        @expected = "test (echo) command"
-        unless FileTest.executable?(cmd) then
-          raise "Unsupported environment: /bin/echo not found"
+        [ "/bin/sh", "/bin/echo" ].each do |cmd|
+          unless FileTest.executable?(cmd) then
+            raise "Unsupported environment: #{cmd} not found"
+          end
         end
+        [ "/bin/sh", File.expand_path(File.join(BioRubyTestDataPath, 'command', 'echoarg2.sh')) ]
       end
     end
+    private :setup_cmd
 
     def test_call_command
       ret = Bio::Command.call_command(@arg) do |io|
@@ -54,6 +57,7 @@ module Bio
     end
 
     def test_call_command_fork
+      return unless Thread.respond_to?(:critical)
       begin
         ret = Bio::Command.call_command_fork(@arg) do |io|
           io.close_write
@@ -85,21 +89,62 @@ module Bio
       assert_equal(@expected, ret.to_s.strip)
     end
 
-  end #class FuncTestCommandCall
+  end #module FuncTestCommandCallCommon
+
+  class FuncTestCommandCallSimple < Test::Unit::TestCase
+
+    include FuncTestCommandCallCommon
+
+    def setup
+      @arg = setup_cmd
+      @arg.concat [ "first", "second", "third" ]
+      @expected = "second"
+    end
+  end #class FuncTestCommandCallSimple
+
+  class FuncTestCommandCallWithSpace < Test::Unit::TestCase
+
+    include FuncTestCommandCallCommon
+
+    def setup
+      @arg = setup_cmd
+      @arg.concat [ "this is", "a test for", "escape of space" ]
+      if windows_platform? then
+        @expected = '"a test for"'
+      else
+        @expected = "a test for"
+      end
+    end
+  end #class FuncTestCommandCallWithSpace
+
+  class FuncTestCommandCallMisc1 < Test::Unit::TestCase
+
+    include FuncTestCommandCallCommon
+
+    def setup
+      @arg = setup_cmd
+      @arg.concat [ 'test (a) *.* \'argument 1\'',
+                    '\'test\' (b) *.* argument 2', 'arg3' ]
+      if windows_platform? then
+        @expected = '"\'test\' (b) *.* argument 2"'
+      else
+        @expected = '\'test\' (b) *.* argument 2'
+      end
+    end
+  end #class FuncTestCommandCallMisc1
 
   class FuncTestCommandQuery < Test::Unit::TestCase
 
     def setup
       @data = [ "987", "123", "567", "456", "345" ]
       @sorted = @data.sort
-      case RUBY_PLATFORM
-      when /mswin32|bccwin32/
+      if Bio::Command.module_eval { windows_platform? } then
         @sort = "sort"
         @data = @data.join("\r\n") + "\r\n"
       else
-        @sort = "/usr/bin/sort"
-        unless FileTest.executable?(@sort) then
-          raise "Unsupported environment: /usr/bin/sort not found"
+        @sort = `which sort`.chomp
+        if @sort.empty? or !FileTest.executable?(@sort) then
+          raise "Unsupported environment: sort not found in PATH"
         end
         @data = @data.join("\n") + "\n"
       end
@@ -120,6 +165,7 @@ module Bio
     end
 
     def test_query_command_fork
+      return unless Thread.respond_to?(:critical)
       ary = [ @sort ]
       begin
         str = Bio::Command.query_command_fork(ary).to_s
@@ -148,8 +194,7 @@ module Bio
 
   class FuncTestCommandChdir < Test::Unit::TestCase
     def setup
-      case RUBY_PLATFORM
-      when /mswin32|bccwin32/
+      if Bio::Command.module_eval { windows_platform? } then
         @arg = [ 'dir', '/B', '/-P' ]
       else
         cmd = '/bin/ls'
@@ -188,6 +233,7 @@ module Bio
     end
 
     def test_call_command_fork_chdir
+      return unless Thread.respond_to?(:critical)
       str = nil
       begin
         Bio::Command.call_command_fork(@arg, 
@@ -215,6 +261,7 @@ module Bio
     end
 
     def test_query_command_fork_chdir
+      return unless Thread.respond_to?(:critical)
       begin
         str = Bio::Command.query_command_fork(@arg, nil,
                                               { :chdir => @dirname }).to_s
@@ -331,20 +378,4 @@ module Bio
     end
   end #class FuncTestCommandTmpdir
 
-  class FuncTestCommandNet < Test::Unit::TestCase
-    def test_read_uri
-      assert_nothing_raised {
-        Bio::Command.read_uri("http://bioruby.open-bio.org/")
-      }
-    end
-
-    def test_start_http
-    end
-
-    def test_new_http
-    end
-
-    def test_post_form
-    end
-  end #class FuncTestCommandNet
 end #module Bio
