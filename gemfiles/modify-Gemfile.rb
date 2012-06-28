@@ -4,7 +4,7 @@ require 'pathname'
 
 envname_default_task = 'BIORUBY_RAKE_DEFAULT_TASK'
 
-gem_dir = Pathname.new(File.join(__FILE__, '..')).realpath
+gem_dir = Pathname.new(File.join(File.dirname(__FILE__), '..')).realpath
 
 case t = ENV[envname_default_task]
 when 'gem-test'
